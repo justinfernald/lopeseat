@@ -31,7 +31,14 @@ $pwd = hash("sha256",$password.$salt);
 
 if ($pwd === $hash) {
     $_SESSION['id'] = $id;
-    result(true);
+    $apiToken = uniqid();
+
+    $stmt = $db->prepare("INSERT INTO apiTokens (user_id, token) VALUES (?,?)");
+    $stmt->bind_param("is", $id, $apiToken);
+
+    $db->exec();
+
+    result(true, $apiToken);
 } else {
     result(false, "Incorrect password");
 }

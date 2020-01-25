@@ -39,7 +39,7 @@ $vCode = randomNum();
 $pwd = hash("sha256",$password.$salt);
 
 $stmt = $db->prepare("INSERT INTO `Users` (`student_id`, `name`, `phone`, `email`, `profile_image` , `token`, `salt`, `hash`) VALUES (?,?,?,?,?,?,?,?)");
-$stmt->bind_param("ssssssss", $ID_number, $name, $phone, $email, $profile_image, $vCode, $salt, $pwd);
+$stmt->bind_param("sssssssss", $ID_number, $name, $phone, $email, $profile_image, $vCode, $salt, $pwd);
 $db->exec();
 result(true);
 

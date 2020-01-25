@@ -16,7 +16,7 @@ $deliverer = $GLOBALS['user'];
 
 if ($deliverer->deliverer == 0) {
     result(false, "Not logged into a delivery account");
-    exit();
+    exit();x
 }
 
 if (!in_array(strtolower($state),$states)) {

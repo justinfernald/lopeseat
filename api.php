@@ -18,8 +18,8 @@
 
   $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
 
-  if ($_SESSION['id'] !== null) {
-    $GLOBALS['user'] = getUser($_SESSION['id']);
+  if ($_POST['apiToken'] !== null) {
+    $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
   }
 
   function getUser($id) {
@@ -72,6 +72,18 @@
   function validPassword($password) {
     //echo (strlen($password) >= 8) . " && " . (preg_match("/[A-Za-z]/", $password)) . "&&" . (preg_match("/[0-9]/", $password));
     return (strlen($password) >= 8 && preg_match("/[A-Za-z]/", $password) == 1 && preg_match("/[0-9]/", $password) == 1);
+  }
+
+  function getUserFromToken($token) {
+    $db = new db();
+    $stmt = $db->prepare("SELECT * FROM apiTokens WHERE token=?");
+    $stmt->bind_param("s", $token);
+    $db->exec();
+    $result = $db->get();
+    if ($result->num_rows == 0) {
+      return null;
+    }
+    return getUser($result->fetch_assoc()['user_id']);
   }
 
   class CartItem {
