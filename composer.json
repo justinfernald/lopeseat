@@ -1,0 +1,7 @@
+{
+    "require" : {
+      "braintree/braintree_php" : "4.5.0",
+      "twilio/sdk": "^5.39",
+      "kreait/firebase-php": "4.37.0"
+    }
+  }
