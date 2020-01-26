@@ -31,6 +31,10 @@
     return $result->fetch_object("User");
   }
 
+  function isLoggedIn() {
+    return $GLOBALS['user'] != null;
+  }
+
   function result($success, $message = "none") {
       if ($message === "none") {
         $message = $success ? "Success" : "Failed";
