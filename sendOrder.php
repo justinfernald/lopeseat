@@ -12,8 +12,8 @@ if ($user == null) {
 
 $cart = Cart::loadCart($user->id);
 
-$nonce = 'fake-venmo-account-nonce';
-#$nonce = $_POST['nonce'];
+#$nonce = 'fake-venmo-account-nonce';
+$nonce = $_POST['nonce'];
 $address = $_POST['address'];
 $total = $cart->getTotal();
 

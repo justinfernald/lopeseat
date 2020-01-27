@@ -11,6 +11,13 @@ if ($user == null) {
     exit();
 }
 
+$restaurant = -1;
+
+$cart = Cart::loadCart($user->id);
+if (sizeof($cart->items)) {
+    $restaurant = $cart->items[0]->restaurant_id;
+}
+
 $db = new db();
 
 $stmt = $db->prepare("SELECT * FROM MenuItems WHERE id=?");
@@ -25,6 +32,11 @@ if ($result->num_rows == 0) {
 
 if (!ctype_digit($amount) || intval($amount) <= 0) {
     result(false, "Invalid amount");
+    exit();
+}
+
+if ($restaurant != -1 && $restaurant != $result->fetch_assoc()['restaurant_id']) {
+    result(false, "Item is from a different restaurant.");
     exit();
 }
 
