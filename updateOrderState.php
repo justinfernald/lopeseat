@@ -5,7 +5,7 @@ use Kreait\Firebase;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
-$states = array("unclaimed", "claimed", "en route", "arrived");
+$states = array("unclaimed", "claimed", "en route", "arrived", "completed");
 
 $db = new db();
 
@@ -44,7 +44,7 @@ $deliverer_user = getUser($user_id);
 $token = $deliverer_user->FBToken;
 $name = $deliverer_name = $deliverer_user->name;
 
-$notification;
+$notification = null;
 
 switch (strtolower($state)) {
 case 'unclaimed':
@@ -61,15 +61,17 @@ case 'arrived':
     break;
 }
 
-$title = str_replace("%deliverer%", $deliverer_name, $notification->title);
-$body = str_replace("%deliverer%", $deliverer_name, $notification->body);
+if ($notification != null) {
+    $title = str_replace("%deliverer%", $deliverer_name, $notification->title);
+    $body = str_replace("%deliverer%", $deliverer_name, $notification->body);
 
-if ($token != null) {
-    $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
+    if ($token != null) {
+        $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
 
-    $message = CloudMessage::withTarget('token',  $token)
-        ->withNotification(Notification::create($title, $body));
-    $result = $messaging->send($message);
+        $message = CloudMessage::withTarget('token',  $token)
+            ->withNotification(Notification::create($title, $body));
+        $result = $messaging->send($message);
+    }
 }
 
 result(true);
