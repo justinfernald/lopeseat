@@ -35,9 +35,17 @@ if ($results->num_rows == 0) {
 }
 
 $user_id = $results->fetch_assoc()['user_id'];
+$index = array_search(strtolower($state), $states);
 
-$stmt = $db->prepare("UPDATE Orders SET state=? WHERE id=?");
-$stmt->bind_param("si",$state,$order);
+if ($index > 0 && $index < 4) {
+    $timeColumn = str_replace(" ", "_", strtolower($state));
+    $time = gmdate("Y-m-d H:i:s");
+    $stmt = $db->prepare("UPDATE Orders SET state=?, $timeColumn=? WHERE id=?");
+    $stmt->bind_param("ssi",$state,$time,$order);
+} else {
+    $stmt = $db->prepare("UPDATE Orders SET state=? WHERE id=?");
+    $stmt->bind_param("si",$state,$order);
+}
 $db->exec();
 
 $deliverer_user = getUser($user_id);
