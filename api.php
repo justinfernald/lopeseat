@@ -142,6 +142,52 @@
 
   }
 
+  class OrderItem {
+
+    var $id;
+    var $user_id;
+    var $order_id;
+    var $item_id;
+    var $amount;
+    var $comment;
+    var $restaurant_id;
+    var $name;
+    var $price;
+    var $image;
+
+    function getTotal() {
+      $total = $this->price * $this->amount;
+      return $total;
+    }
+
+  }
+
+  class Order {
+
+    var $items = [];
+
+    static function loadOrder($orderId) {
+      $order = new Order();
+      $items = [];
+      $db = new db();
+      $stmt = $db->prepare("SELECT OrderItems.id, OrderItems.order_id, OrderItems.item_id, OrderItems.amount, OrderItems.comment, 
+      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, Orders.user_id
+      FROM OrderItems 
+      INNER JOIN MenuItems ON OrderItems.order_id=? AND OrderItems.item_id = MenuItems.id
+      INNER JOIN Orders ON Orders.id=?");
+      $stmt->bind_param("ii", $orderId, $orderId);
+      $db->exec();
+      $result = $db->get();
+
+      while($item = $result->fetch_object("OrderItem")) {
+          array_push($items, $item);
+      }
+      $order->items = $items;
+      return $order;
+    }
+
+  }
+
   class User {
     var $id;
     var $studentId;
