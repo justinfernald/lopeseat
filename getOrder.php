@@ -10,11 +10,16 @@ if ($user == null) {
 
 $db = new db();
 
-$stmt = $db->prepare("SELECT * FROM `Orders` WHERE `user_id`=?");
+$stmt = $db->prepare("SELECT * FROM `Orders` WHERE `user_id`=? AND `state`!='completed'");
 $stmt->bind_param("i",$user->id);
 
 $db->exec();
 $results = $db->get();
+
+if ($results->num_rows == 0) {
+    echo "null";
+    exit();
+}
 
 $order = $results->fetch_object();
 

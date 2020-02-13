@@ -15,6 +15,10 @@
         "order_arrived": {
             "title": "Order Arrived",
             "body": "Your deliverer is approaching with your order."
+        },
+        "message_received": {
+            "title": "New message from %sender%",
+            "body": "%message%"
         }
     }
 }
