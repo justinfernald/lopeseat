@@ -5,7 +5,7 @@ use Kreait\Firebase;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
-$orderId = $_POST['orderId'];
+$orderId = $_GET['orderId'];
 $messageString = $_POST['message'];
 $user = $GLOBALS['user'];
 
@@ -55,9 +55,14 @@ if ($results->num_rows > 0) {
         "sender" => $user->name
     ];
 
-    $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
+    try {
+        $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
 
-    $message = CloudMessage::withTarget('token', $token)->withData($data);
-    $result = $messaging->send($message);
+        $message = CloudMessage::withTarget('token', $token)->withData($data);
+        $result = $messaging->send($message);
+    } catch (Exception $e) {
+    }
 }
+result(true, "Message sent");
+exit(0);
 ?>
