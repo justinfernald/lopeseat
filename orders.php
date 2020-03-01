@@ -32,6 +32,9 @@ $results = $db->get();
 $orders = [];
 
 while($order = $results->fetch_object()) {
+    $orderItems = Order::loadOrder($order->id)->items;
+    $order->restaurant_id = $orderItems[0]->restaurant_id;
+    $order->restaurant_name = $orderItems[0]->restaurant_name;
     array_push($orders, $order);
 }
 

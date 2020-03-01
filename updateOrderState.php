@@ -24,33 +24,41 @@ if (!in_array(strtolower($state),$states)) {
     exit();
 }
 
-$stmt = $db->prepare("SELECT user_id FROM Orders WHERE deliverer=? AND id=?");
-$stmt->bind_param("ii", $deliverer->id, $order);
+$stmt = $db->prepare("SELECT user_id,state FROM Orders WHERE id = ? AND (deliverer=? OR (deliverer=-1 AND state='unclaimed'))");
+$stmt->bind_param("ii", $order, $deliverer->id);
 $db->exec();
 $results = $db->get();
 
 if ($results->num_rows == 0) {
-    result(false, "This order is not assigned to the given delivery account.");
+    result(false, "Order has been claimed by another deliverer.");
     exit();
 }
 
-$user_id = $results->fetch_assoc()['user_id'];
+$row = $results->fetch_assoc();
+$user_id = $row['user_id'];
 $index = array_search(strtolower($state), $states);
+
+if ($index != 1 && $row['state']=="unclaimed") {
+    result(false, "Order must move from unclaimed to claimed");
+    exit();
+}
 
 if ($index > 0 && $index < 4) {
     $timeColumn = str_replace(" ", "_", strtolower($state));
     $time = gmdate("Y-m-d H:i:s");
-    $stmt = $db->prepare("UPDATE Orders SET state=?, $timeColumn=? WHERE id=?");
-    $stmt->bind_param("ssi",$state,$time,$order);
+    $stmt = $db->prepare("UPDATE Orders SET state=?, $timeColumn=?, deliverer=? WHERE id=?");
+    $stmt->bind_param("ssii",$state,$time,$deliverer->id,$order);
 } else {
-    $stmt = $db->prepare("UPDATE Orders SET state=? WHERE id=?");
-    $stmt->bind_param("si",$state,$order);
+    if ($index = 0)
+        $deliverer->id = -1;
+    $stmt = $db->prepare("UPDATE Orders SET state=?,$deliverer=? WHERE id=?");
+    $stmt->bind_param("si",$state,$deliverer->id,$order);
 }
 $db->exec();
 
-$deliverer_user = getUser($user_id);
-$token = $deliverer_user->FBToken;
-$name = $deliverer_name = $deliverer_user->name;
+$user = getUser($user_id);
+$token = $user->FBToken;
+$deliverer_name = $deliverer->name;
 
 $notification = null;
 

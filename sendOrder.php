@@ -33,9 +33,9 @@ if ($result->success) {
 
   for ($i = 0; $i < sizeof($cart->items); $i++) {
     $item = $cart->items[$i];
-    $stmt = $db->prepare("INSERT INTO OrderItems (order_id, item_id, amount, comment) VALUES (?,?,?,?)");
+    $stmt = $db->prepare("INSERT INTO OrderItems (order_id, item_id, amount, comment, options) VALUES (?,?,?,?,?)");
     $order_id = $GLOBALS['conn']->insert_id;
-    $stmt->bind_param("iiis", $order_id, $item->item_id, $item->amount, $item->comment);
+    $stmt->bind_param("iiis", $order_id, $item->item_id, $item->amount, $item->comment, $item->options);
     $db->exec();
   }
 

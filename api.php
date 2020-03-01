@@ -97,6 +97,7 @@
     var $item_id;
     var $amount;
     var $comment;
+    var $options;
     var $restaurant_id;
     var $name;
     var $price;
@@ -117,7 +118,7 @@
       $cart = new Cart();
       $items = [];
       $db = new db();
-      $stmt = $db->prepare("SELECT CartItems.id, CartItems.user_id, CartItems.item_id, CartItems.amount, CartItems.comment, 
+      $stmt = $db->prepare("SELECT CartItems.id, CartItems.user_id, CartItems.item_id, CartItems.amount, CartItems.comment, CartItems.options, 
       MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image FROM CartItems 
       INNER JOIN MenuItems
       ON CartItems.user_id=? AND CartItems.item_id = MenuItems.id");
@@ -150,7 +151,9 @@
     var $item_id;
     var $amount;
     var $comment;
+    var $options;
     var $restaurant_id;
+    var $restaurant_name;
     var $name;
     var $price;
     var $image;
@@ -170,11 +173,12 @@
       $order = new Order();
       $items = [];
       $db = new db();
-      $stmt = $db->prepare("SELECT OrderItems.id, OrderItems.order_id, OrderItems.item_id, OrderItems.amount, OrderItems.comment, 
-      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, Orders.user_id
+      $stmt = $db->prepare("SELECT OrderItems.id, OrderItems.order_id, OrderItems.item_id, OrderItems.amount, OrderItems.comment, OrderItems.options, 
+      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, Orders.user_id, Restaurants.name as restaurant_name
       FROM OrderItems 
       INNER JOIN MenuItems ON OrderItems.order_id=? AND OrderItems.item_id = MenuItems.id
-      INNER JOIN Orders ON Orders.id=?");
+      INNER JOIN Orders ON Orders.id=?
+      INNER JOIN Restaurants on MenuItems.restaurant_id=Restaurants.id");
       $stmt->bind_param("ii", $orderId, $orderId);
       $db->exec();
       $result = $db->get();
