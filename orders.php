@@ -2,24 +2,43 @@
 require('api.php');
 
 $state = $_GET['state'];
-$user = $_GET['user'];
+$deliverer = $_GET['deliverer'];
+
+$user = $GLOBALS['user'];
+
+if ($user == null) {
+    result(false, "Not logged into a delivery account");
+    exit();
+}
+
+$delivererId = $user->id;
 
 $queryCondition = "";
 
 $db = new db();
 
-if (isset($state) || isset($user)) {
-    if (isset($state) && isset($user)) {
-        $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `state`=? AND `user_id`=?");
-        $stmt->bind_param("si",$state, $user);
+if (isset($state) || isset($deliverer)) {
+    if (isset($state) && isset($deliverer)) {
+        $stateOperator = "=";
+        if (substr($state, 0, 1) === "!") {
+            $stateOperator = "<>";
+            $state = substr($state, 1);
+        }
+        $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `state`$stateOperator? AND `deliverer`=?");
+        $stmt->bind_param("si",$state, $delivererId);
         // echo "state and user";
     } else if (isset($state)) {
-        $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `state`=?");
+        $stateOperator = "=";
+        if (substr($state, 0, 1) === "!") {
+            $stateOperator = "<>";
+            $state = substr($state, 1);
+        }
+        $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `state`$stateOperator?");
         $stmt->bind_param("s",$state);
         // echo "state:".$state;
     } else {
-        $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `user_id`=?");
-        $stmt->bind_param("i",$user);
+        $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `deliverer`=?");
+        $stmt->bind_param("i",$delivererId);
         // echo "user";
     }
 } else {

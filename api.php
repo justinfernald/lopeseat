@@ -194,11 +194,12 @@
 
   class User {
     var $id;
-    var $studentId;
+    var $student_id;
     var $name;
     var $deliverer;
     var $phone;
     var $email;
+    var $profile_image;
     var $confirmed;
     var $token;
     var $salt;

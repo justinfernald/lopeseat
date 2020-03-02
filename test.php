@@ -1,4 +1,5 @@
 <?php
-require("api.php");
+$test = $_GET['test'];
+
+echo(isset($test) ? "true" : "false");
 ?>
-Hello <?=$GLOBALS['user']->name?>

@@ -51,8 +51,8 @@ if ($index > 0 && $index < 4) {
 } else {
     if ($index = 0)
         $deliverer->id = -1;
-    $stmt = $db->prepare("UPDATE Orders SET state=?,$deliverer=? WHERE id=?");
-    $stmt->bind_param("si",$state,$deliverer->id,$order);
+    $stmt = $db->prepare("UPDATE Orders SET state=?,deliverer=? WHERE id=?");
+    $stmt->bind_param("sii",$state,$deliverer->id,$order);
 }
 $db->exec();
 
