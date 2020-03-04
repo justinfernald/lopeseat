@@ -159,6 +159,8 @@
     var $image;
 
     function getTotal() {
+      $calculatedPrice = $this->price;
+      // $options = 
       $total = $this->price * $this->amount;
       return $total;
     }
