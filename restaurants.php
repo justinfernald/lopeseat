@@ -2,7 +2,7 @@
 require('api.php');
 
 $db = new db();
-$stmt = $db->prepare("SELECT * FROM Restaurants");
+$stmt = $db->prepare("SELECT * FROM Restaurants WHERE `disabled`=0");
 $db->exec();
 $results = $db->get();
 
