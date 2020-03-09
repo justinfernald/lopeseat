@@ -160,8 +160,30 @@
 
     function getTotal() {
       $calculatedPrice = $this->price;
-      // $options = 
-      $total = $this->price * $this->amount;
+      $options = json_decode($this->options);
+
+      $db = new db();
+      $stmt = $db->prepare("SELECT * FROM `MenuItems` WHERE `id` = ?");
+      $stmt->bind_param("i", $this->item_id);
+      $db->exec();
+      $result = $db->get();
+
+      $items = json_decode($result->fetch_assoc()["items"]);
+
+      for ($i = 0; $i < count($items); $i++) {
+        $item = $items[$i];
+        $options = $item->options;
+        for ($j = 0; $j < count($options); $j++) {
+          $option = $options[$j];
+          $choices = $options->choices;
+          if (isset($items[$i]) && isset($items[$i][$j]) && isset($choices[$items[$i][$j]]) && isset($choices[$items[$i][$j]]->cost)) {
+            $calculatedPrice += $choices[$items[$i][$j]]->cost;
+          }
+        }
+      }
+
+      $total = $calculatedPrice * $this->amount;
+      // $total = $this->price * $this->amount;
       return $total;
     }
 
