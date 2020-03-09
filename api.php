@@ -1,11 +1,11 @@
 <?php
   require('sql.php');
   require('./vendor/autoload.php');
-  session_start();
 
   header('Access-Control-Allow-Origin: *');
   header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
   header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
+  header("Content-Type: application/json");
 
   $gateway = new Braintree_Gateway([
       'environment'=>'sandbox',
@@ -13,6 +13,8 @@
       'publicKey' => 'b6b65664w2vpbcwr',
       'privateKey' => '68a544770524bf4c9c6edf13340f84ae'
   ]);
+
+  $paypalToken = "A21AAHIZJzAuhg8bybvLX_p1B-Cakq-VPAB2nrhGM7rIbk33P9LnH6hVCKSdJDlhaxSgmMhzkMWtOEhhJkpkqT3QdR7CizJmg";
 
   $messages = json_decode(file_get_contents("messages.json"));
 
@@ -80,7 +82,7 @@
 
   function getUserFromToken($token) {
     $db = new db();
-    $stmt = $db->prepare("SELECT * FROM apiTokens WHERE token=?");
+    $stmt = $db->prepare("SELECT user_id FROM apiTokens WHERE token=?");
     $stmt->bind_param("s", $token);
     $db->exec();
     $result = $db->get();
