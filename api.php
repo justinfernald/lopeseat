@@ -7,14 +7,17 @@
   header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
   header("Content-Type: application/json");
 
+  $secrets = json_decode(file_get_contents("secrets.json"));
+
   $gateway = new Braintree_Gateway([
-      'environment'=>'sandbox',
-      'merchantId' => 'xyt67ywsjf63s93k',
-      'publicKey' => 'b6b65664w2vpbcwr',
-      'privateKey' => '68a544770524bf4c9c6edf13340f84ae'
+      'environment'=>$secrets->braintree->environment,
+      'merchantId' =>$secrets->braintree->merchantId,
+      'publicKey' =>$secrets->braintree->publicKey,
+      'privateKey' =>$secrets->braintree->privateKey
   ]);
 
-  $paypalToken = "A21AAHIZJzAuhg8bybvLX_p1B-Cakq-VPAB2nrhGM7rIbk33P9LnH6hVCKSdJDlhaxSgmMhzkMWtOEhhJkpkqT3QdR7CizJmg";
+  $paypalClientId = $secrets->paypal->clientId;
+  $paypalSecret = $secrets->paypal->secret;
 
   $messages = json_decode(file_get_contents("messages.json"));
 

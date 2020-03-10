@@ -1,3 +1,4 @@
 vendor/*
 twilio.json
 sql.php
+secrets.json

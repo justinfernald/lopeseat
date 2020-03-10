@@ -1,6 +1,29 @@
 <?php
 require('api.php');
 
+//Get paypal token
+$auth = base64_encode($paypalClientId . ":" . $paypalSecret);
+
+$ch = curl_init();
+
+curl_setopt($ch, CURLOPT_URL, "https://api.sandbox.paypal.com/v1/oauth2/token");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    "Content-Type: application/x-www-form-urlencoded",
+    "Authorization: Basic " . $auth
+));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$result = curl_exec($ch);
+if (curl_errno($ch)) {
+    print "Error: " . curl_error($ch);
+    exit();
+}
+curl_close($ch);
+$result = json_decode($result);
+$paypalToken = $result->access_token;
+
 $user = $GLOBALS['user'];
 
 if (!isLoggedIn() || $user->deliverer === 0) {
