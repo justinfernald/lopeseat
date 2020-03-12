@@ -19,6 +19,9 @@
   $paypalClientId = $secrets->paypal->clientId;
   $paypalSecret = $secrets->paypal->secret;
 
+  $GLOBALS['PCI'] = $paypalClientId;
+  $GLOBALS['PS'] = $paypalSecret;
+
   $messages = json_decode(file_get_contents("messages.json"));
 
   $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
@@ -93,6 +96,30 @@
       return null;
     }
     return getUser($result->fetch_assoc()['user_id']);
+  }
+
+  function getPaypalToken() {
+    $auth = base64_encode($GLOBALS['PCI'] . ":" . $GLOBALS['PS']);
+    
+    $ch = curl_init();
+    
+    curl_setopt($ch, CURLOPT_URL, "https://api.sandbox.paypal.com/v1/oauth2/token");
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Content-Type: application/x-www-form-urlencoded",
+        "Authorization: Basic " . $auth
+    ));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+    $result = curl_exec($ch);
+    if (curl_errno($ch)) {
+        print "Error: " . curl_error($ch);
+        exit();
+    }
+    curl_close($ch);
+    $result = json_decode($result);
+    return $result->access_token;
   }
 
   class CartItem {
@@ -235,6 +262,45 @@
     var $hash;
     var $created;
     var $FBToken;
+    var $orderIds;
+
+    function getPayoutTotal() {
+      $db = new db();
+      $stmt = $db->prepare("SELECT * FROM Orders WHERE deliverer=? AND state='completed' AND payoutReceived=0");
+      $stmt->bind_param("i", $this->id);
+      $db->exec();
+      $results = $db->get();
+      
+      if ($results->num_rows == 0)
+        return 0;
+      
+      $payoutTotal = 0;
+      $payoutOrderIds = array();
+      
+      while ($row = $results->fetch_assoc()) {
+          $time = strtotime($row['arrived']);
+          $now = strtotime(gmdate("Y-m-d H:i:s"));
+          if (($now - $time) / 3600 >= 1) {
+              $payoutTotal += $row['delivery_fee'] / 2;
+              array_push($payoutOrderIds, "id=" . $row['id']);
+          }
+      }
+
+      $this->orderIds = $payoutOrderIds;
+      
+      return $payoutTotal;
+    }
+
+    function updateOrderPayouts($batchId) {
+      if (sizeof($this->orderIds) > 0) {
+        $db = new db();
+        $condition = implode(" OR ", $this->orderIds);
+        
+        $stmt = $db->prepare("UPDATE Orders SET payoutReceived=1, payoutBatchId=? WHERE $condition");
+        $stmt->bind_param("s", $batchId);
+        $db->exec();
+      }
+    }
   }
 
   class db {

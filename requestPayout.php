@@ -1,29 +1,6 @@
 <?php
 require('api.php');
 
-//Get paypal token
-$auth = base64_encode($paypalClientId . ":" . $paypalSecret);
-
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, "https://api.sandbox.paypal.com/v1/oauth2/token");
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-    "Content-Type: application/x-www-form-urlencoded",
-    "Authorization: Basic " . $auth
-));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-$result = curl_exec($ch);
-if (curl_errno($ch)) {
-    print "Error: " . curl_error($ch);
-    exit();
-}
-curl_close($ch);
-$result = json_decode($result);
-$paypalToken = $result->access_token;
-
 $user = $GLOBALS['user'];
 
 if (!isLoggedIn() || $user->deliverer === 0) {
@@ -31,38 +8,15 @@ if (!isLoggedIn() || $user->deliverer === 0) {
     exit();
 }
 
-$db = new db();
-$stmt = $db->prepare("SELECT * FROM Orders WHERE deliverer=? AND state='completed' AND payoutReceived=0");
-$stmt->bind_param("i", $user->id);
-$db->exec();
-$results = $db->get();
+$paypalToken = getPaypalToken();
+$payoutTotal = $user->getPayoutTotal(true);
 
-if ($results->num_rows == 0) {
-    result(false, "No available payouts");
-    exit();
-}
-
-$payoutTotal = 0;
-$payoutOrderIds = array();
-
-while ($row = $results->fetch_assoc()) {
-    $time = strtotime($row['arrived']);
-    $now = strtotime(gmdate("Y-m-d H:i:s"));
-    if (($now - $time) / 3600 >= 1) {
-        $payoutTotal += $row['delivery_fee'] / 2;
-        array_push($payoutOrderIds, "id=" . $row['id']);
-    }
-}
+echo $paypalToken;
 
 if ($payoutTotal == 0) {
     result(false, "No available payouts");
     exit();
 }
-
-$condition = implode(" OR ", $payoutOrderIds);
-
-$stmt = $db->prepare("UPDATE Orders SET payoutReceived=1 WHERE $condition");
-$db->exec();
 
 $url = "https://api.sandbox.paypal.com/v1/payments/payouts";
 
@@ -103,5 +57,11 @@ if (curl_errno($ch)) {
     exit();
 }
 curl_close($ch);
+
+$jsonResult = json_decode($result);
+$batchId = $jsonResult->batch_header->payout_batch_id;
+
+$user->updateOrderPayouts($batchId);
+
 echo $result;
 ?>
