@@ -130,13 +130,37 @@
     var $amount;
     var $comment;
     var $options;
+    var $items;
     var $restaurant_id;
     var $name;
     var $price;
     var $image;
 
     function getTotal() {
-      $total = $this->price * $this->amount;
+      $calculatedPrice = $this->price;
+      $itemOptions = json_decode($this->options);
+
+      $itemsObj = json_decode($this->items);
+
+      for ($i = 0; $i < count($itemsObj); $i++) {
+        $item = $itemsObj[$i];
+        $mItemOptions = $item->options;
+        for ($j = 0; $j < count($mItemOptions); $j++) {
+          $option = $mItemOptions[$j];
+          $choices = $option->choices;
+          $choiceIndex = $itemOptions[$i]->{$option->name};
+          $choice = $choices->{$choiceIndex};
+          if (isset($item) && 
+          isset($option) && 
+          isset($choice) && 
+          isset($choice->cost)) {
+            $calculatedPrice += $choice->cost;
+          }
+        }
+      }
+
+      $total = $calculatedPrice * $this->amount;
+      // $total = $this->price * $this->amount;
       return $total;
     }
 
@@ -151,7 +175,7 @@
       $items = [];
       $db = new db();
       $stmt = $db->prepare("SELECT CartItems.id, CartItems.user_id, CartItems.item_id, CartItems.amount, CartItems.comment, CartItems.options, 
-      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image FROM CartItems 
+      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, MenuItems.items FROM CartItems 
       INNER JOIN MenuItems
       ON CartItems.user_id=? AND CartItems.item_id = MenuItems.id");
       $stmt->bind_param("i", $userId);
@@ -159,7 +183,7 @@
       $result = $db->get();
 
       while($item = $result->fetch_object("CartItem")) {
-          array_push($items, $item);
+        array_push($items, $item);
       }
       $cart->items = $items;
       return $cart;
@@ -184,6 +208,7 @@
     var $amount;
     var $comment;
     var $options;
+    var $items;
     var $restaurant_id;
     var $restaurant_name;
     var $name;
@@ -192,24 +217,23 @@
 
     function getTotal() {
       $calculatedPrice = $this->price;
-      $options = json_decode($this->options);
+      $itemOptions = json_decode($this->options);
 
-      $db = new db();
-      $stmt = $db->prepare("SELECT * FROM `MenuItems` WHERE `id` = ?");
-      $stmt->bind_param("i", $this->item_id);
-      $db->exec();
-      $result = $db->get();
+      $itemsObj = json_decode($this->items);
 
-      $items = json_decode($result->fetch_assoc()["items"]);
-
-      for ($i = 0; $i < count($items); $i++) {
-        $item = $items[$i];
-        $options = $item->options;
-        for ($j = 0; $j < count($options); $j++) {
-          $option = $options[$j];
-          $choices = $options->choices;
-          if (isset($items[$i]) && isset($items[$i][$j]) && isset($choices[$items[$i][$j]]) && isset($choices[$items[$i][$j]]->cost)) {
-            $calculatedPrice += $choices[$items[$i][$j]]->cost;
+      for ($i = 0; $i < count($itemsObj); $i++) {
+        $item = $itemsObj[$i];
+        $mItemOptions = $item->options;
+        for ($j = 0; $j < count($mItemOptions); $j++) {
+          $option = $mItemOptions[$j];
+          $choices = $option->choices;
+          $choiceIndex = $itemOptions[$i]->{$option->name};
+          $choice = $choices->{$choiceIndex};
+          if (isset($item) && 
+          isset($option) && 
+          isset($choice) && 
+          isset($choice->cost)) {
+            $calculatedPrice += $choice->cost;
           }
         }
       }
@@ -230,7 +254,7 @@
       $items = [];
       $db = new db();
       $stmt = $db->prepare("SELECT OrderItems.id, OrderItems.order_id, OrderItems.item_id, OrderItems.amount, OrderItems.comment, OrderItems.options, 
-      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, Orders.user_id, Restaurants.name as restaurant_name
+      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, MenuItems.items, Orders.user_id, Restaurants.name as restaurant_name
       FROM OrderItems 
       INNER JOIN MenuItems ON OrderItems.order_id=? AND OrderItems.item_id = MenuItems.id
       INNER JOIN Orders ON Orders.id=?

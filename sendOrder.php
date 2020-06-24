@@ -15,6 +15,7 @@ $cart = Cart::loadCart($user->id);
 #$nonce = 'fake-venmo-account-nonce';
 $nonce = $_POST['nonce'];
 $address = $_POST['address'];
+$tip = $_POST['tip'];
 $total = $cart->getTotal();
 
 $result = $gateway->transaction()->sale([
@@ -27,8 +28,8 @@ $result = $gateway->transaction()->sale([
 
 if ($result->success) {
   $db = new db();
-  $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee) VALUES (?,?,?,?)");
-  $stmt->bind_param("isss",$user->id,$address,$total,$deliveryfee);
+  $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, tip) VALUES (?,?,?,?)");
+  $stmt->bind_param("isss",$user->id,$address,$total,$deliveryfee,$tip);
   $db->exec();
 
   for ($i = 0; $i < sizeof($cart->items); $i++) {
