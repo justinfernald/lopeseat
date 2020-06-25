@@ -135,6 +135,7 @@
     var $name;
     var $price;
     var $image;
+    var $specialInstructions;
 
     function getTotal() {
       $calculatedPrice = $this->price;
@@ -175,7 +176,7 @@
       $items = [];
       $db = new db();
       $stmt = $db->prepare("SELECT CartItems.id, CartItems.user_id, CartItems.item_id, CartItems.amount, CartItems.comment, CartItems.options, 
-      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, MenuItems.items FROM CartItems 
+      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, MenuItems.items, MenuItems.specialInstructions FROM CartItems 
       INNER JOIN MenuItems
       ON CartItems.user_id=? AND CartItems.item_id = MenuItems.id");
       $stmt->bind_param("i", $userId);
