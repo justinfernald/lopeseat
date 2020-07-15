@@ -6,12 +6,16 @@ if (isLoggedIn()) {
 
     $user = $GLOBALS['user'];
     $token = $_POST['token'];
+    $platform = $_POST['platform'];
 
-    $stmt = $db->prepare("UPDATE Users SET FBToken=? WHERE id=?");
-    $stmt->bind_param("si",$token,$user->id);
+    $stmt = $db->prepare("UPDATE Users SET FBToken=?,FBPlatform=? WHERE id=?");
+    $stmt->bind_param("ssi",$token,$platform,$user->id);
     if ($db->exec()) {
         result(true);
     }
+    exit();
+} else {
+    result(false, "Not logged in");
     exit();
 }
 ?>
