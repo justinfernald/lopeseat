@@ -11,6 +11,6 @@ jobs:
     - name: FTP-Deploy-Action
       uses: SamKirkland/FTP-Deploy-Action@3.1.1
       with:
-        ftp-server: ftp://ftp.zerenthalrpg.com/
+        ftp-server: ftp://ftp.zerenthalrpg.com:21/lopeseat.com/REST/
         ftp-username: zerentha
         ftp-password: ${{ secrets.FTP_PASSWORD }}
