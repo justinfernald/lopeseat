@@ -1,6 +1,5 @@
 <?php
-include('api.php');
-require 'vendor/autoload.php';
+require('api.php');
 
 $key = $_GET['key'];
 
