@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "66acbdc300f08ed7a7f617dc63ac183b",
+    "content-hash": "317977757e9f0ae372fd7d256c967354",
     "packages": [
         {
             "name": "braintree/braintree_php",
@@ -1037,6 +1037,67 @@
             "time": "2018-08-22T07:45:22+00:00"
         },
         {
+            "name": "ministryofweb/image-fix-exif-orientation",
+            "version": "0.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ministryofweb/image-fix-exif-orientation.git",
+                "reference": "7e6c1e16d7a6a62a5c270cc78e1403295b83a83e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ministryofweb/image-fix-exif-orientation/zipball/7e6c1e16d7a6a62a5c270cc78e1403295b83a83e",
+                "reference": "7e6c1e16d7a6a62a5c270cc78e1403295b83a83e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1 || ^7.2 || ^7.3 || ^7.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.16",
+                "phpunit/phpunit": "^8.4",
+                "squizlabs/php_codesniffer": "^3.5",
+                "vimeo/psalm": "^3.6"
+            },
+            "suggest": {
+                "ext-gd": "*",
+                "ext-imagick": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "MinistryOfWeb\\ImageFixExifOrientation\\": [
+                        "src/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marcus Jaschen",
+                    "email": "mjaschen@gmail.com",
+                    "homepage": "https://www.marcusjaschen.de/"
+                }
+            ],
+            "description": "Automatically rotates an image based on its orientation stored in Exif data. Supports GD and ImageMagick/IMagick.",
+            "keywords": [
+                "ImageMagick",
+                "camera",
+                "exif",
+                "ext-imagick",
+                "fix",
+                "gd",
+                "image",
+                "photo",
+                "rotate",
+                "rotation"
+            ],
+            "time": "2019-11-27T13:59:05+00:00"
+        },
+        {
             "name": "monolog/monolog",
             "version": "2.0.2",
             "source": {
@@ -1171,6 +1232,82 @@
                 "jsonpath"
             ],
             "time": "2016-12-03T22:08:25+00:00"
+        },
+        {
+            "name": "picqer/php-barcode-generator",
+            "version": "v2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/picqer/php-barcode-generator.git",
+                "reference": "16c51a795454198500cdfb4f82de288945af3960"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/picqer/php-barcode-generator/zipball/16c51a795454198500cdfb4f82de288945af3960",
+                "reference": "16c51a795454198500cdfb4f82de288945af3960",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=7.2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.5"
+            },
+            "suggest": {
+                "ext-bcmath": "Barcode IMB (Intelligent Mail Barcode) needs bcmath extension",
+                "ext-gd": "For JPG and PNG generators, GD or Imagick is required",
+                "ext-imagick": "For JPG and PNG generators, GD or Imagick is required"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Picqer\\Barcode\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Nicola Asuni",
+                    "email": "info@tecnick.com",
+                    "homepage": "http://nicolaasuni.tecnick.com"
+                },
+                {
+                    "name": "Casper Bakker",
+                    "email": "info@picqer.com",
+                    "homepage": "https://picqer.com"
+                }
+            ],
+            "description": "An easy to use, non-bloated, barcode generator in PHP. Creates SVG, PNG, JPG and HTML images from the most used 1D barcode standards.",
+            "homepage": "https://github.com/picqer/php-barcode-generator",
+            "keywords": [
+                "CODABAR",
+                "Code11",
+                "Code93",
+                "EAN13",
+                "KIX",
+                "KIXCODE",
+                "MSI",
+                "POSTNET",
+                "Pharma",
+                "Standard 2 of 5",
+                "barcode",
+                "barcode generator",
+                "code128",
+                "code39",
+                "ean",
+                "html",
+                "jpeg",
+                "jpg",
+                "php",
+                "png",
+                "svg",
+                "upc"
+            ],
+            "time": "2020-01-28T13:00:23+00:00"
         },
         {
             "name": "psr/cache",
@@ -1604,5 +1741,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
