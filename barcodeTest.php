@@ -16,6 +16,7 @@ if ($key == null) {
 // }
 
 $generator = new Picqer\Barcode\BarcodeGeneratorHTML();
+
 echo $generator->getBarcode($key, $generator::TYPE_CODE_39);
 
 ?>
