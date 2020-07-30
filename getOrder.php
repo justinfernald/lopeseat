@@ -1,5 +1,5 @@
 <?php
-require_once('api.php');
+require('api.php');
 
 $user = $GLOBALS['user'];
 
