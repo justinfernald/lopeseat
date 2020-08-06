@@ -15,7 +15,6 @@ $cart = Cart::loadCart($user->id);
 #$nonce = 'fake-venmo-account-nonce';
 $nonce = $_POST['nonce'];
 $address = $_POST['address'];
-$tip = $_POST['tip'];
 $total = $cart->getTotal();
 
 $result = $gateway->transaction()->sale([
@@ -27,16 +26,17 @@ $result = $gateway->transaction()->sale([
   ]);
 
 if ($result->success) {
+  $time = gmdate("Y-m-d H:i:s");
   $db = new db();
-  $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, tip) VALUES (?,?,?,?)");
-  $stmt->bind_param("isss",$user->id,$address,$total,$deliveryfee,$tip);
+  $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, placed) VALUES (?,?,?,?,?)");
+  $stmt->bind_param("isiis",$user->id,$address,$total,$deliveryfee,$time);
   $db->exec();
+  $order_id = $GLOBALS['conn']->insert_id;
 
   for ($i = 0; $i < sizeof($cart->items); $i++) {
     $item = $cart->items[$i];
     $stmt = $db->prepare("INSERT INTO OrderItems (order_id, item_id, amount, comment, options) VALUES (?,?,?,?,?)");
-    $order_id = $GLOBALS['conn']->insert_id;
-    $stmt->bind_param("iiis", $order_id, $item->item_id, $item->amount, $item->comment, $item->options);
+    $stmt->bind_param("iiiss", $order_id, $item->item_id, $item->amount, $item->comment, $item->options);
     $db->exec();
   }
 
