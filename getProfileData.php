@@ -8,5 +8,5 @@ if ($user == null) {
     exit();
 }
 
-echo json_encode(array("name"=>$user->name,"phone"=>$user->phone,"email"=>$user->email, "deliverer"=>!!$user->deliverer, "studentId"=>$user->student_id));
+echo json_encode(array("name"=>$user->name,"phoneNumber"=>$user->phone,"email"=>$user->email, "isDeliverer"=>!!$user->deliverer, "studentNumber"=>$user->student_id));
 ?>
