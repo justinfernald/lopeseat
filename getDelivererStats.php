@@ -22,11 +22,11 @@ $db->exec();
 
 $row = $db->get()->fetch_object();
 
-$json_message = json_encode(array(
+$message = array(
     "deliveryCount"=>$row->count,
     "averageRating"=>$row->average_rating,
     "averageDeliveryTime"=>$row->average_delivery_time,
     "amountEarned"=>$row->amount_earned
-));
-result(true, $json_message)
+);
+result(true, $message)
 ?>
