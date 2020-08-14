@@ -16,7 +16,7 @@ $row = $db->get()->fetch_object();
 $message = array(
     "activeDeliveries"=>$row->active_deliveries,
     "orderInHour"=>$row->orders_in_hour,
-    "histogramData"=>$row->histogram_json
+    "histogramData"=>json_decode($row->histogram_json)
 );
 result(true, $message)
 ?>
