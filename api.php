@@ -370,4 +370,18 @@
     }
 
   }
+
+  // Request setup
+
+  function handleRequest($handlerFunc, $get, $post) {
+    $db = new db();
+    $params = array($db);
+    for ($i = 0; $i < sizeof($get); $i++) {
+      array_push($params, $_GET[$get[$i]]);
+    }
+    for ($i = 0; $i < sizeof($post); $i++) {
+      array_push($params, $_POST[$post[$i]]);
+    }
+    call_user_func_array($handlerFunc, $params);
+  }
 ?>
