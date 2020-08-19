@@ -51,9 +51,7 @@ $row = $result->fetch_assoc();
 
 $_SESSION['id'] = $row['id'];
 
-$sid = "ACabd0af5c10c6a5af597761521ba19abd";
-$token = "96e1075f638f3db1553dd7e34618c832";
-$twilio = new Client($sid, $token);
+$twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
 
 $message = $twilio->messages->create($phone, array(
     "body" => "Thank you for joining LopesEat! Your code is $vCode",
