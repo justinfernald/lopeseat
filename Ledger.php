@@ -99,7 +99,7 @@ class Ledger {
 
         $db = new db();
         $stmt = $db->prepare("INSERT INTO `BalanceUpdates` (`user_id`, `amount`, `source`, `destination`, `balance`) VALUES (?,?,?,?,?)");
-        $stmt->bind_param("iiiii", $user_id, $amount, $source, $destination, $newBalance);
+        $stmt->bind_param("idiid", $user_id, $amount, $source, $destination, $newBalance);
         $db->exec();
 
         $dataObj = Array(
