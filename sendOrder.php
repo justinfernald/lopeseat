@@ -1,7 +1,7 @@
 <?php
 require('api.php');
 
-$deliveryfee = 3.75;
+$deliveryfee = 4;
 
 $user = $GLOBALS['user'];
 
@@ -29,7 +29,7 @@ if ($result->success) {
   $time = gmdate("Y-m-d H:i:s");
   $db = new db();
   $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, placed) VALUES (?,?,?,?,?)");
-  $stmt->bind_param("isiis",$user->id,$address,$total,$deliveryfee,$time);
+  $stmt->bind_param("isdds",$user->id,$address,$total,$deliveryfee,$time);
   $db->exec();
   $order_id = $GLOBALS['conn']->insert_id;
 
