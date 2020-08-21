@@ -356,8 +356,8 @@
       if (!$this->stmt->error) {
           return true;
       } else {
-          result(false, $this->stmt->error);
-          return false;
+          result(false, "SQL Error: " . $this->stmt->error);
+          exit();
       }
     }
 
