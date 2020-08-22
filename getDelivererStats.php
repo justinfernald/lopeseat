@@ -8,6 +8,12 @@ if ($user == null) {
     exit();
 }
 
+if ($user->deliverer == 0) {
+    result(false, "Not on a delivery account");
+    exit();
+}
+
+
 // delivery count: SELECT COUNT(*) FROM `Orders` WHERE `deliverer`=0
 // average rating: SELECT AVG(rating) FROM `Orders` WHERE `deliverer`=0
 // average delivery time (arrived - claimed): SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(TIMEDIFF(`arrived`,`claimed`)))) FROM `Orders` WHERE `deliverer`=0

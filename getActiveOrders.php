@@ -8,6 +8,12 @@ if ($user == null) {
     exit();
 }
 
+if ($user->deliverer == 0) {
+    result(false, "Not on a delivery account");
+    exit();
+}
+
+
 $delivererId = $user->id;
 
 $db = new db();
