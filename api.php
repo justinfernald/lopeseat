@@ -49,6 +49,7 @@
       }
       $out = array('success' => $success, 'msg' => $message);
       echo json_encode($out);
+      exit();
   }
 
   function randomToken($n = 13) {
