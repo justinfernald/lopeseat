@@ -4,7 +4,7 @@ require('Ledger.php');
 
 $user = $GLOBALS['user'];
 
-if ($user == null) {
+if (!isLoggedIn()) {
     result(false, "Not logged in");
     exit();
 }

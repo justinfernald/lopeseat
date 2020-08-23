@@ -38,10 +38,14 @@ $salt = randomToken();
 $vCode = randomNum();
 $pwd = hash("sha256",$password.$salt);
 
-$stmt = $db->prepare("INSERT INTO `Users` (`student_id`, `name`, `phone`, `email`, `profile_image` , `token`, `salt`, `hash`) VALUES (?,?,?,?,?,?,?,?)");
-$stmt->bind_param("ssssssss", $ID_number, $name, $phone, $email, $profile_image, $vCode, $salt, $pwd);
+$stmt = $db->prepare("INSERT INTO `Users` (`student_id`, `name`, `phone`, `email`, `profile_image`, `salt`, `hash`) VALUES (?,?,?,?,?,?,?)");
+$stmt->bind_param("sssssss", $ID_number, $name, $phone, $email, $profile_image, $salt, $pwd);
 $db->exec();
-result(true);
+$user_id = $stmt->insert_id;
+
+$stmt = $db->prepare("INSERT INTO `PhoneConfirmations` (`user_id`, `phone`, `token`) VALUES (?,?,?)");
+$stmt->bind_param("iss", $user_id, $phone, $vCode);
+$db->exec();
 
 $stmt = $db->prepare("SELECT id FROM `Users` WHERE `student_id`=?");
 $stmt->bind_param("s", $ID_number);
@@ -57,4 +61,6 @@ $message = $twilio->messages->create($phone, array(
     "body" => "Thank you for joining LopesEat! Your code is $vCode",
     "from" => "+17207456737"
 ));
+
+result(true);
 ?>
