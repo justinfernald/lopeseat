@@ -4,6 +4,7 @@
       "twilio/sdk": "^5.39",
       "kreait/firebase-php": "4.37.0",
         "picqer/php-barcode-generator": "^2.0",
-        "ministryofweb/image-fix-exif-orientation": "^0.1.2"
+        "ministryofweb/image-fix-exif-orientation": "^0.1.2",
+        "cocur/background-process": "^0.7.0"
     }
   }

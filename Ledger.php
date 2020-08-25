@@ -86,25 +86,31 @@ class Ledger {
         return $matches;
     }
 
-    function write($user_id, $amount, $source, $destination) {
-        $balanceId = ($source <= 2) ? $source : (($destination <= 2) ? $destination : 0);
-        $sign = ($source <= 2) ? -1 : 1;
+    function write($user_id, $sender_id, $receiver_id, $amount, $source, $destination) {
+        $isSender = $user_id != $receiver_id;
+        $sign = $isSender ? -1 : 1;
+        $balanceId = $isSender ? $source : $destination;
         $newBalance = 0;
         if ($balanceId != 0)
             $newBalance = $this->getQuickBalance($user_id, $balanceId) + ($sign * $amount);
+
+        if ($newBalance < 0)
+            return false;
 
         $date = new DateTime();
         $date->modify('-4 hours');
         $timeStamp = $date->format('Y-m-d H:i:s');
 
         $db = new db();
-        $stmt = $db->prepare("INSERT INTO `BalanceUpdates` (`user_id`, `amount`, `source`, `destination`, `balance`) VALUES (?,?,?,?,?)");
-        $stmt->bind_param("idiid", $user_id, $amount, $source, $destination, $newBalance);
+        $stmt = $db->prepare("INSERT INTO `BalanceUpdates` (`user_id`, `sender_id`, `receiver_id`, `amount`, `source`, `destination`, `balance`) VALUES (?,?,?,?,?,?,?)");
+        $stmt->bind_param("iiidiid", $user_id, $sender_id, $receiver_id, $amount, $source, $destination, $newBalance);
         $db->exec();
 
         $dataObj = Array(
             id => $GLOBALS['conn']->insert_id,
             user_id => $user_id, 
+            sender_id => $sender_id,
+            receiver_id => $receiver_id,
             amount => $amount, 
             source => $source, 
             destination => $destination, 
@@ -113,6 +119,27 @@ class Ledger {
         );
 
         $this->writeEncrypted($dataObj);
+        return true;
+    }
+
+    function transferDeliveryEarnings($user_id, $amount) {
+        return $this->write($user_id, 0, $user_id, $amount, 4, 2);
+    }
+
+    function transferDeliveryFeeFromLEB($user_id, $amount) {
+        return $this->write($user_id, $user_id, 0, $amount, 1, 5);
+    }
+
+    function transferDeliveryFeeFromDB($user_id, $amount) {
+        return $this->write($user_id, $user_id, 0, $amount, 2, 5);
+    }
+
+    function transferCashToLEB($sender_id, $receiver_id, $amount) {
+        return $this->write($receiver_id, $sender_id, $receiver_id, $amount, 3, 1);
+    }
+
+    function transferCashFromDB($user_id, $amount) {
+        return $this->write($user_id, $user_id, 0, $amount, 2, 3);
     }
 
 }
