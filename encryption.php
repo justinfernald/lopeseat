@@ -2,7 +2,10 @@
 require('api.php');
 require('Ledger.php');
 
+echo openssl_encrypt("[]", 'aes-256-cbc', $GLOBALS['key'], 0, $GLOBALS['iv']);
+
 $ledger = new Ledger();
-$ledger->write(34, 50.23, 3, 1);
-$ledger->write(34, 78.62, 4, 2);
+$ledger->transferDeliveryEarnings(29, 100);
+$ledger->transferDeliveryFeeFromLEB(29, 10);
+$ledger->transferDeliveryFeeFromDB(29, 20);
 ?>
