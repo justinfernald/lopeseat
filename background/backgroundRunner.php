@@ -1,6 +1,6 @@
 <?php
-require_once('api.php');
-require('deliveryQueue.php');
+require_once('../api.php');
+require('../delivery/deliveryQueue.php');
 $payload = $_GET['payload'];
 
 $fp = fopen('backgroundRunner.log', 'a');
@@ -15,7 +15,7 @@ function backgroundRunner() {
 }
 
 function handleQueue() {
-    $orderIds = getUnclaimedOrders();
+    $orderIds = getUnrequestedOrders();
     foreach ($orderIds as $orderId) {
         
     }
