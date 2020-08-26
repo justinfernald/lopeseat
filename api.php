@@ -1,13 +1,12 @@
 <?php
-  require('sql.php');
-  require('./vendor/autoload.php');
+  require(__DIR__.'/vendor/autoload.php');
 
   header('Access-Control-Allow-Origin: *');
   header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
   header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
   header("Content-Type: application/json");
 
-  $secrets = json_decode(file_get_contents("secrets.json"));
+  $secrets = json_decode(file_get_contents(__DIR__."/config/secrets.json"));
 
   $gateway = new Braintree_Gateway([
       'environment'=>$secrets->braintree->environment,
@@ -22,7 +21,10 @@
   $GLOBALS['PCI'] = $paypalClientId;
   $GLOBALS['PS'] = $paypalSecret;
 
-  $messages = json_decode(file_get_contents("messages.json"));
+  $GLOBALS['sql_user'] = $secrets->sql->user;
+  $GLOBALS['sql_pass'] = $secrets->sql->pass;
+
+  $messages = json_decode(file_get_contents(__DIR__."/config/messages.json"));
 
   $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
 
