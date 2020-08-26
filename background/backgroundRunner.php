@@ -15,9 +15,11 @@ function backgroundRunner() {
 }
 
 function handleQueue() {
-    $orderIds = getUnrequestedOrders();
+    $expiredOrderIds = getExpiredOrders();
+    $unrequestedOrderIds = getUnrequestedOrders();
+    $orderIds = array_merge($expiredOrderIds, $unrequestedOrderIds);
     foreach ($orderIds as $orderId) {
-        
+        requestDeliverer($orderId);
     }
 }
 
