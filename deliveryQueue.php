@@ -53,4 +53,46 @@ function getQueuedDeliverer() {
     return null;
 }
 
+function requestDeliverer($orderId) {
+    $delivererId = getQueuedDeliverer();
+    $db = new db();
+
+    $stmt = $db->prepare("INSERT INTO `DelivererRequest` (`id`, `order_id`, `deliverer_id`, `status_id`) VALUES (NULL, ?, ?, '1')");
+    $stmt->bind_param("ii", $orderId, $delivererId);
+    $db->exec();
+
+    return null;
+}
+
+function getExpiredOrders() {
+    $timeAllowed = 30; // in seconds
+
+    // there is no need to convert to milliseconds since UNIX_TIMESTAMP in sql returns in seconds
+    $stmt = $db->prepare("SELECT id FROM `DelivererRequest` WHERE status_id='1' AND UNIX_TIMESTAMP(time_created) > (UNIX_TIMESTAMP(CURRENT_TIMESTAMP) - ?) ORDER BY time_created");
+    $stmt->bind_param("i", $timeAllowed);
+    $db->exec();
+    $result = $db->get();
+    $orderIds = array();
+    while ($row = $result->fetch_object()) {
+        array_push($row, $row->id);
+    }
+
+    return $orderIds;
+}
+
+function getUnclaimedOrders() {
+    $db = new db();
+
+    $stmt = $db->prepare("SELECT id FROM `Orders` WHERE state='unclaimed' ORDER BY placed");
+
+    $db->exec();
+    $result = $db->get();
+    $orderIds = array();
+    while ($row = $result->fetch_object()) {
+        array_push($row, $row->id);
+    }
+
+    return $orderIds;
+}
+
 ?>

@@ -1,5 +1,6 @@
 <?php
-require('api.php');
+require_once('api.php');
+require('deliveryQueue.php');
 $payload = $_GET['payload'];
 
 $fp = fopen('backgroundRunner.log', 'a');
@@ -8,4 +9,17 @@ fwrite($fp, "$milliseconds | $payload\n");
 fclose($fp);
 
 echo "true";
+
+function backgroundRunner() {
+    handleQueue();
+}
+
+function handleQueue() {
+    $orderIds = getUnclaimedOrders();
+    foreach ($orderIds as $orderId) {
+        
+    }
+}
+
+backgroundRunner();
 ?>
