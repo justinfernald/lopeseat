@@ -19,6 +19,18 @@
         "message_received": {
             "title": "New message from %sender%",
             "body": "%message%"
+        },
+        "deliverer_next_up": {
+            "title": "Next in queue",
+            "body": " %deliverer%, you are next in queue."
+        },
+        "deliverer_request": {
+            "title": "Deliverer Request",
+            "body": " %deliverer%, you have an order available to be accepted."
+        },
+        "deliverer_past_time": {
+            "title": "Deliverer Request Expired",
+            "body": " %deliverer%, you missed an order."
         }
     }
 }
