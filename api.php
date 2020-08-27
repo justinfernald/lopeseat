@@ -25,8 +25,9 @@
   $GLOBALS['sql_pass'] = $secrets->sql->pass;
 
   $messages = json_decode(file_get_contents(__DIR__."/config/messages.json"));
+  $GLOBALS['messages'] = $messages;
 
-  $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
+  $GLOBALS['serviceAccountPath'] = sprintf("%s/config/service_account.json", __DIR__);
 
   if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
