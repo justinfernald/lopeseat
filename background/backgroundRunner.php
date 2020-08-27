@@ -16,6 +16,9 @@ function backgroundRunner() {
 
 function handleQueue() {
     $expiredOrderIds = getExpiredOrders();
+
+    // these don't really need to run in the background
+
     $unrequestedOrderIds = getUnrequestedOrders();
     $orderIds = array_merge($expiredOrderIds, $unrequestedOrderIds);
     foreach ($orderIds as $orderId) {
