@@ -126,21 +126,8 @@
     return $result->access_token;
   }
 
-  function getPayoutStatus() {
+  function getPayoutStatus($batchId) {
     $paypalToken = getPaypalToken();
-
-    $db = new db();
-    $stmt = $db->prepare("SELECT batch_id FROM Payouts WHERE id=?");
-    $stmt->bind_param("i", $payoutId);
-
-    $db->exec();
-    $results = $db->get();
-
-    if ($result->num_rows == 0) {
-      return null;
-    }
-
-    $batchId = $results->fetch_assoc()['batch_id'];
 
     $url = "https://api.sandbox.paypal.com/v1/payments/payouts/$batchId";
 

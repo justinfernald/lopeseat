@@ -15,9 +15,9 @@ if (!isset($payoutId)) {
     exit();
 }
 
-$result = getPayoutStatus();
+$result = getPayoutStatus($payoutId);
 
-if ($results == null) {
+if ($result == null) {
     result(false, "No payout found");
     exit();
 }

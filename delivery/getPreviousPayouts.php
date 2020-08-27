@@ -1,5 +1,5 @@
 <?php
-require('api.php');
+require('../api.php');
 
 if (!isLoggedIn()) {
     result(false, "Not logged in");
@@ -18,8 +18,11 @@ $payouts = Array();
 
 while($row = $result->fetch_assoc()) {
     $status = $row['status'];
-    if ($row['status'] != "SUCCESS") {
-        $status = getPayoutStatus();
+    if ($status !== "SUCCESS") {
+        $status = getPayoutStatus($row['batch_id']);
+        // $stmt = $db->prepare("UPDATE Payouts SET `status`=? WHERE id=?");
+        // $stmt->bind_param("si",$status,$row['id']);
+        // $db->exec();
     }
     $payoutObj = Array(
         'id' => $row['id'],
