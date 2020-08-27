@@ -8,48 +8,19 @@ if ($user == null || $user->deliverer == 0) {
     exit();
 }
 
-$orderId = $_GET['order'];
+$payoutId = $_GET['payoutId'];
 
-if (!isset($orderId)) {
-    result(false, "No order id given.");
+if (!isset($payoutId)) {
+    result(false, "No balance update id given.");
     exit();
 }
 
-$paypalToken = getPaypalToken();
+$result = getPayoutStatus($payoutId);
 
-$db = new db();
-$stmt = $db->prepare("SELECT payoutBatchId FROM Orders WHERE id=?");
-$stmt->bind_param("i", $orderId);
-
-$db->exec();
-$results = $db->get();
-
-if ($results->num_rows == 0) {
-    result(false, "No order found");
+if ($result == null) {
+    result(false, "No payout found");
     exit();
 }
 
-$batchId = $results->fetch_assoc()['payoutBatchId'];
-
-$url = "https://api.sandbox.paypal.com/v1/payments/payouts/$batchId";
-
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-    "Content-Type: application/json",
-    "Authorization: Bearer " . $paypalToken
-));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-$result = curl_exec($ch);
-if (curl_errno($ch)) {
-    print "Error: " . curl_error($ch);
-    exit();
-}
-curl_close($ch);
-
-$result_json = json_decode($result);
-
-echo json_encode(array("status"=>$result_json->batch_header->batch_status));
+echo json_encode(array("status"=>$result));
 ?>

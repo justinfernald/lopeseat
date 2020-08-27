@@ -126,6 +126,32 @@
     return $result->access_token;
   }
 
+  function getPayoutStatus($batchId) {
+    $paypalToken = getPaypalToken();
+
+    $url = "https://api.sandbox.paypal.com/v1/payments/payouts/$batchId";
+
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Content-Type: application/json",
+        "Authorization: Bearer " . $paypalToken
+    ));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $result = curl_exec($ch);
+    if (curl_errno($ch)) {
+        print "Error: " . curl_error($ch);
+        exit();
+    }
+    curl_close($ch);
+
+    $result_json = json_decode($result);
+
+    return $result_json->batch_header->batch_status;
+  }
+
   class CartItem {
 
     var $id;
