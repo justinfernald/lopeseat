@@ -22,7 +22,7 @@ class Ledger {
 
     function loadEncryptedLedger() {
         // Load encrypted ledger in base 64
-        $encLedger = file_get_contents("ledger.b64");
+        $encLedger = file_get_contents(__DIR__."/ledger.b64");
         $ledgerJson = openssl_decrypt($encLedger, 'aes-256-cbc', $GLOBALS['key'], 0, $GLOBALS['iv']);
         $ledger = json_decode($ledgerJson);
         return $ledger;
@@ -107,15 +107,15 @@ class Ledger {
         $db->exec();
 
         $dataObj = Array(
-            id => $GLOBALS['conn']->insert_id,
-            user_id => $user_id, 
-            sender_id => $sender_id,
-            receiver_id => $receiver_id,
-            amount => $amount, 
-            source => $source, 
-            destination => $destination, 
-            balance => $newBalance, 
-            time => $timeStamp
+            "id" => $GLOBALS['conn']->insert_id,
+            "user_id" => $user_id, 
+            "sender_id" => $sender_id,
+            "receiver_id" => $receiver_id,
+            "amount" => $amount, 
+            "source" => $source, 
+            "destination" => $destination, 
+            "balance" => $newBalance, 
+            "time" => $timeStamp
         );
 
         $this->writeEncrypted($dataObj);
@@ -124,6 +124,10 @@ class Ledger {
 
     function transferDeliveryEarnings($user_id, $amount) {
         return $this->write($user_id, 0, $user_id, $amount, 4, 2);
+    }
+
+    function transferDeliveryTip($sender_id, $receiver_id, $amount) {
+        return $this->write($receiver_id, $sender_id, $receiver_id, $amount, 6,2);
     }
 
     function transferDeliveryFeeFromLEB($user_id, $amount) {
@@ -138,8 +142,16 @@ class Ledger {
         return $this->write($receiver_id, $sender_id, $receiver_id, $amount, 3, 1);
     }
 
-    function transferCashFromDB($user_id, $amount) {
-        return $this->write($user_id, $user_id, 0, $amount, 2, 3);
+    function transferCashFromDB($user_id, $amount, $batch_id) {
+        $ret = $this->write($user_id, $user_id, 0, $amount, 2, 3);
+        $balanceUpdateId = $GLOBALS['conn']->insert_id;
+
+        $db = new db();
+        $stmt = $db->prepare("INSERT INTO Payouts (user_id, batch_id, balance_update_id, amount, time) VALUES (?,?,?,?,CURRENT_TIMESTAMP(4))");
+        $stmt->bind_param("isid", $user_id, $batch_id, $balanceUpdateId, $amount);
+        $db->exec();
+
+        return $ret;
     }
 
 }

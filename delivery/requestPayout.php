@@ -1,5 +1,6 @@
 <?php
 require('../api.php');
+require("../ledger/Ledger.php");
 
 $user = $GLOBALS['user'];
 
@@ -8,10 +9,10 @@ if (!isLoggedIn() || $user->deliverer === 0) {
     exit();
 }
 
-$paypalToken = getPaypalToken();
-$payoutTotal = $user->getPayoutTotal(true);
+$ledger = new Ledger();
 
-echo $paypalToken;
+$paypalToken = getPaypalToken();
+$payoutTotal = $ledger->getQuickBalance($user->id, 2);
 
 if ($payoutTotal == 0) {
     result(false, "No available payouts");
@@ -61,7 +62,7 @@ curl_close($ch);
 $jsonResult = json_decode($result);
 $batchId = $jsonResult->batch_header->payout_batch_id;
 
-$user->updateOrderPayouts($batchId);
+$ledger->transferCashFromDB($user->id, $payoutTotal, $batchId);
 
 echo $result;
 ?>
