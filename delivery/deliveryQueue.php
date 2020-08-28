@@ -59,23 +59,23 @@ function requestDeliverer($orderId) {
     $stmt = $db->prepare("SELECT name, FBToken FROM Users WHERE id=?");
     $stmt->bind_param("i", $delivererId);
     $db->exec();
-    $row = $db->get()->fetch_object();
+    $rowDeliverer = $db->get()->fetch_object();
 
     // need to notify deliverer
-    $notification = $messages->notifications->deliverer_past_time;
+    $notification = $GLOBALS['messages']->notifications->deliverer_request;
 
-    $title = str_replace("%deliverer%", $row->name, $notification->title);
-    $body = str_replace("%deliverer%", $row->name, $notification->body);
+    $title = str_replace("%deliverer%", $rowDeliverer->name, $notification->title);
+    $body = str_replace("%deliverer%", $rowDeliverer->name, $notification->body);
     $data = [
         "title" => $title,
         "body" => $body,
-        "state" => "deliverer_request"
+        "state" => "new_request"
     ];
 
-    if ($row->token != null) {
+    if ($rowDeliverer->FBToken != null) {
         $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
 
-        $message = CloudMessage::withTarget('token',  $row->token)->withData($data);
+        $message = CloudMessage::withTarget('token',  $rowDeliverer->FBToken)->withData($data);
         $result = $messaging->send($message);
     }
 
@@ -116,7 +116,7 @@ function getExpiredOrders() {
             $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
 
             $message = CloudMessage::withTarget('token',  $rowDeliverer->FBToken)->withData($data);
-            $result = $messaging->send($message);
+            $notificationResult = $messaging->send($message);
         }
         array_push($orderIds, $row->order_id);
     }
