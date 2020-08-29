@@ -20,9 +20,9 @@ while($row = $result->fetch_assoc()) {
     $status = $row['status'];
     if ($status !== "SUCCESS") {
         $status = getPayoutStatus($row['batch_id']);
-        // $stmt = $db->prepare("UPDATE Payouts SET `status`=? WHERE id=?");
-        // $stmt->bind_param("si",$status,$row['id']);
-        // $db->exec();
+        $stmt = $db->prepare("UPDATE Payouts SET `status`=? WHERE id=?");
+        $stmt->bind_param("si",$status,$row['id']);
+        $db->exec();
     }
     $payoutObj = Array(
         'id' => $row['id'],

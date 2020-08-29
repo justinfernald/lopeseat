@@ -18,18 +18,18 @@ $address = $_POST['address'];
 $total = $cart->getTotal();
 
 $result = $gateway->transaction()->sale([
-    'amount' => strval($deliveryfee),
-    'paymentMethodNonce' => $nonce,
-    'options' => [
-      'submitForSettlement' => True
-    ]
-  ]);
+  'amount' => strval($deliveryfee),
+  'paymentMethodNonce' => $nonce,
+  'options' => [
+    'submitForSettlement' => FALSE
+  ]
+]);
 
 if ($result->success) {
   $time = gmdate("Y-m-d H:i:s");
   $db = new db();
-  $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, placed) VALUES (?,?,?,?,?)");
-  $stmt->bind_param("isdds",$user->id,$address,$total,$deliveryfee,$time);
+  $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, transaction_id, submitted, placed) VALUES (?,?,?,?,?,0,?)");
+  $stmt->bind_param("isddss",$user->id,$address,$total,$deliveryfee,$result->transaction->id,$time);
   $db->exec();
   $order_id = $GLOBALS['conn']->insert_id;
 
