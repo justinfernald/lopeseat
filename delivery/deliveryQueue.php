@@ -69,7 +69,7 @@ function requestDeliverer($orderId) {
     $data = [
         "title" => $title,
         "body" => $body,
-        "state" => "new_request"
+        "state" => "deliverer_request"
     ];
 
     if ($rowDeliverer->FBToken != null) {
@@ -128,8 +128,6 @@ function getExpiredOrders() {
 function getUnrequestedOrders() {
     $db = new db();
 
-
-    // !fix this statement next
     $stmt = $db->prepare("SELECT Orders.id FROM Orders LEFT OUTER JOIN( SELECT DelivererRequest.* FROM ( SELECT order_id, MAX(time_created) AS time_created FROM DelivererRequest GROUP BY order_id ) AS LatestDelivererRequest INNER JOIN DelivererRequest ON DelivererRequest.order_id = LatestDelivererRequest.order_id AND DelivererRequest.time_created = LatestDelivererRequest.time_created ) AS DelivererRequestInfo ON DelivererRequestInfo.order_id = Orders.id WHERE (DelivererRequestInfo.id IS NULL OR DelivererRequestInfo.status_id <> 2 AND DelivererRequestInfo.status_id <> 1) AND Orders.state = 'unclaimed' ORDER BY Orders.placed");
 
     $db->exec();
@@ -142,22 +140,63 @@ function getUnrequestedOrders() {
     return $orderIds;
 }
 
+function isOrderClaimed($orderId) {
+    $stmt = $db->prepare("SELECT user_id,state,delivery_fee,tip FROM Orders WHERE id = ? AND state='unclaimed'");
+    $stmt->bind_param("i", $orderId);
+    $db->exec();
+    $results = $db->get();
+
+    return $results->num_rows != 0;
+}
+
+function isDeliverersOrder($delivererId, $orderId) {
+    $stmt = $db->prepare("SELECT user_id,state,delivery_fee,tip FROM Orders WHERE id = ? AND deliverer=?");
+    $stmt->bind_param("ii", $orderId, $delivererId);
+    $db->exec();
+    $results = $db->get();
+
+    return $results->num_rows != 0;
+}
+
+function isOrderAcceptable($delivererId, $orderId) {
+    $stmt = $db->prepare("SELECT DelivererRequest.id FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE order_id=? AND deliverer_id = ? GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created WHERE DelivererRequest.status_id = 1");
+    $stmt->bind_param("ii", $orderId, $delivererId);
+    $db->exec();
+    $results = $db->get();
+
+    return $results->num_rows != 0;
+}
+
 function acceptDelivererRequest($delivererId, $orderId) {
+    if (isOrderClaimed($orderId) || !isOrderAcceptable($delivererId, $orderId)) return false;
+
     $stmt = $db->prepare("INSERT INTO `DelivererRequest` (`id`, `order_id`, `deliverer_id`, `status_id`) VALUES (NULL, ?, ?, '2')");
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
+
+    $stmt = $db->prepare("UPDATE Orders SET state='claimed',deliverer=? WHERE id=?");
+    $stmt->bind_param("ii",$delivererId,$orderId);
+    $db->exec();
+
+    return true;
 }
 
 function declineDelivererRequest($delivererId, $orderId) {
+    if (!isOrderAcceptable($delivererId, $orderId)) return false;
+
     $stmt = $db->prepare("INSERT INTO `DelivererRequest` (`id`, `order_id`, `deliverer_id`, `status_id`) VALUES (NULL, ?, ?, '3')");
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
+
+    return true;
 }
 
 function pastTimeDelivererRequest($delivererId, $orderId) {
     $stmt = $db->prepare("INSERT INTO `DelivererRequest` (`id`, `order_id`, `deliverer_id`, `status_id`) VALUES (NULL, ?, ?, '4')");
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
+
+    return true;
 }
 
 ?>

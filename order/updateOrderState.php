@@ -96,7 +96,8 @@ if ($notification != null) {
     $data = [
         "title" => $title,
         "body" => $body,
-        "state" => $state
+        // "state" => $state
+        "state" => "order_update"
     ];
 
     if ($token != null) {
