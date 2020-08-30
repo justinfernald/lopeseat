@@ -9,13 +9,13 @@ $result = $db->get();
 $ids = Array();
 
 if ($result->num_rows == 0) {
-    echo "True";
+    echo "true";
 }
 
 while ($row = $result->fetch_assoc()) {
     $arrived = strtotime($row['arrived']);
     $dif = (time() - $arrived);
-    if ($dif > 2*60) {
+    if ($dif > 60*60) {
         $success = FALSE;
         if ($secrets->braintree->environment == "sandbox") {
             $success = TRUE;
@@ -24,11 +24,11 @@ while ($row = $result->fetch_assoc()) {
             $success = $btResult->success;
         }
         if ($success) {
-            echo "True";
+            echo "true";
             array_push($ids, $row['id']);
         } else {
             print_r($btResult->errors);
-            echo "False";
+            echo "false";
         }
     }
 }
