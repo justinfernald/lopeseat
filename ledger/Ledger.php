@@ -25,6 +25,9 @@ class Ledger {
         $encLedger = file_get_contents(__DIR__."/ledger.b64");
         $ledgerJson = openssl_decrypt($encLedger, 'aes-256-cbc', $GLOBALS['key'], 0, $GLOBALS['iv']);
         $ledger = json_decode($ledgerJson);
+        if ($ledger == null) {
+            $ledger = Array();
+        }
         return $ledger;
     }
 

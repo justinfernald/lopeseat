@@ -25,7 +25,7 @@ if (!in_array(strtolower($state),$states)) {
     exit();
 }
 
-$stmt = $db->prepare("SELECT user_id,state,delivery_fee,tip FROM Orders WHERE id = ? AND (deliverer=? OR (deliverer=-1 AND state='unclaimed'))");
+$stmt = $db->prepare("SELECT user_id,state,delivery_fee FROM Orders WHERE id = ? AND (deliverer=? OR (deliverer=-1 AND state='unclaimed'))");
 $stmt->bind_param("ii", $order, $deliverer->id);
 $db->exec();
 $results = $db->get();
@@ -38,7 +38,6 @@ if ($results->num_rows == 0) {
 $row = $results->fetch_assoc();
 $user_id = $row['user_id'];
 $fee = intval($row['delivery_fee']);
-$tip = intval($row['tip']);
 $index = array_search(strtolower($state), $states);
 
 if ($index != 1 && $row['state']=="unclaimed") {
@@ -85,8 +84,6 @@ case 'arrived':
 case 'completed':
     $ledger = new Ledger();
     $ledger->transferDeliveryEarnings($deliverer->id, $fee);
-    if ($tip != 0)
-        $ledger->transferDeliveryTip($user_id, $deliverer->id, $tip);
     break;
 }
 
