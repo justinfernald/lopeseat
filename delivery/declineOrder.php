@@ -15,19 +15,19 @@ if ($user->deliverer == 0) {
     exit();
 }
 
-if (acceptDelivererRequest($deliverId, $orderId)) {
-    result(true);
-    exit();
-}
-
-if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
+if (!isset($_GET['order']) || !ctype_digit($_GET['order'])) {
     result(false, "Invalid ID");
     exit();
 }
 
-$orderId = (int) $_GET['id'];
+$orderId = (int) $_GET['order'];
 
 $delivererId = $user->id;
+
+// if (!isOrderAcceptable($delivererId, $orderId)) {
+//     result(false, "that is just not acceptable");
+//     exit();
+// }
 
 if (declineDelivererRequest($delivererId, $orderId)) {
     result(true);

@@ -144,23 +144,39 @@ function getUnrequestedOrders()
     return $orderIds;
 }
 
+function getAcceptableOrders($delivererId)
+{
+    $db = new db();
+
+    $stmt = $db->prepare("SELECT Orders.id, UNIX_TIMESTAMP(DelivererRequest.time_created) * 1000 AS timeRequested FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE deliverer_id=19 GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created INNER JOIN Orders ON DelivererRequest.order_id = Orders.id WHERE DelivererRequest.status_id = 1");
+
+    $db->exec();
+    $result = $db->get();
+    $orders = array();
+    while ($row = $result->fetch_object()) {
+        array_push($orders, $row);
+    }
+
+    return $orders;
+}
+
 function isOrderClaimed($orderId)
 {
     $db = new db();
 
-    $stmt = $db->prepare("SELECT user_id,state,delivery_fee,tip FROM Orders WHERE id = ? AND state='unclaimed'");
+    $stmt = $db->prepare("SELECT id FROM Orders WHERE id = ? AND state='unclaimed'");
     $stmt->bind_param("i", $orderId);
     $db->exec();
     $results = $db->get();
 
-    return $results->num_rows != 0;
+    return $results->num_rows == 0;
 }
 
 function isDeliverersOrder($delivererId, $orderId)
 {
     $db = new db();
 
-    $stmt = $db->prepare("SELECT user_id,state,delivery_fee,tip FROM Orders WHERE id = ? AND deliverer=?");
+    $stmt = $db->prepare("SELECT id FROM Orders WHERE id = ? AND deliverer=?");
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
     $results = $db->get();
@@ -196,7 +212,7 @@ function acceptDelivererRequest($delivererId, $orderId)
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
 
-    $stmt = $db->prepare("UPDATE Orders SET state='claimed',deliverer=? WHERE id=?");
+    $stmt = $db->prepare("UPDATE Orders SET state='claimed',deliverer=?,claimed=CURRENT_TIMESTAMP WHERE id=?");
     $stmt->bind_param("ii", $delivererId, $orderId);
     $db->exec();
 

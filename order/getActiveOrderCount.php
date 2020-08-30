@@ -1,5 +1,5 @@
 <?php
-require('../api.php');
+require '../api.php';
 
 $user = $GLOBALS['user'];
 
@@ -13,7 +13,6 @@ if ($user->deliverer == 0) {
     exit();
 }
 
-
 $delivererId = $user->id;
 
 $db = new db();
@@ -26,5 +25,10 @@ $results = $db->get();
 
 $count = $results->fetch_object()->count;
 
+$stmt = $db->prepare("SELECT COUNT(Orders.id) as count FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE deliverer_id=19 GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created INNER JOIN Orders ON DelivererRequest.order_id = Orders.id WHERE DelivererRequest.status_id = 1");
+$db->exec();
+$results = $db->get();
+
+$count += $results->fetch_object()->count;
+
 echo result(true, $count);
-?>

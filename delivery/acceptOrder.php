@@ -1,8 +1,9 @@
 <?php
-require_once('../api.php');
-require('../delivery/deliveryQueue.php');
+require_once '../api.php';
+require '../delivery/deliveryQueue.php';
 
-$orderId = $_GET['order'];$user = $GLOBALS['user'];
+$orderId = $_GET['order'];
+$user = $GLOBALS['user'];
 
 if ($user == null) {
     result(false, "Not logged into a delivery account");
@@ -14,19 +15,19 @@ if ($user->deliverer == 0) {
     exit();
 }
 
-if (acceptDelivererRequest($deliverId, $orderId)) {
-    result(true);
-    exit();
-}
-
-if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
+if (!isset($_GET['order']) || !ctype_digit($_GET['order'])) {
     result(false, "Invalid ID");
     exit();
 }
 
-$orderId = (int)$_GET['id'];
+$orderId = (int) $_GET['order'];
 
 $delivererId = $user->id;
+
+// if (!isOrderAcceptable($delivererId, $orderId)) {
+//     result(false, "that is just not acceptable");
+//     exit();
+// }
 
 if (acceptDelivererRequest($delivererId, $orderId)) {
     result(true);
@@ -34,4 +35,3 @@ if (acceptDelivererRequest($delivererId, $orderId)) {
 }
 
 result(false, "Order can't be accepted");
-?>
