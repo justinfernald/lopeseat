@@ -1,8 +1,9 @@
 <?php
-require_once('../api.php');
-require('../delivery/deliveryQueue.php');
+require_once '../api.php';
+require '../delivery/deliveryQueue.php';
 
-$orderId = $_GET['order'];$user = $GLOBALS['user'];
+$orderId = $_GET['order'];
+$user = $GLOBALS['user'];
 
 if ($user == null) {
     result(false, "Not logged into a delivery account");
@@ -24,7 +25,7 @@ if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
     exit();
 }
 
-$orderId = (int)$_GET['id'];
+$orderId = (int) $_GET['id'];
 
 $delivererId = $user->id;
 
@@ -34,4 +35,3 @@ if (declineDelivererRequest($delivererId, $orderId)) {
 }
 
 result(false, "Order can't be declined");
-?>
