@@ -51,7 +51,6 @@ if ($row['state'] == "completed") {
 
 if ($index > 0 && $index < 4) {
     $timeColumn = str_replace(" ", "_", strtolower($state));
-    $time = gmdate("Y-m-d H:i:s");
     $stmt = $db->prepare("UPDATE Orders SET state=?, $timeColumn=CURRENT_TIMESTAMP, deliverer=? WHERE id=?");
     $stmt->bind_param("sii",$state,$deliverer->id,$order);
 } else {

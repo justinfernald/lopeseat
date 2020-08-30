@@ -8,28 +8,39 @@ $result = $db->get();
 
 $ids = Array();
 
+if ($result->num_rows == 0) {
+    echo "True";
+}
+
 while ($row = $result->fetch_assoc()) {
     $arrived = strtotime($row['arrived']);
     $dif = (time() - $arrived);
-    echo $dif."<br/>";
-    echo time()."<br/>";
-    echo $arrived."<br/>";
     if ($dif > 2*60) {
-        echo "attempt";
-        $btResult = $gateway->transaction()->submitForSettlement($row['transaction_id']);
-        if ($btResult->success) {
-            echo "success";
+        $success = FALSE;
+        if ($secrets->braintree->environment == "sandbox") {
+            $success = TRUE;
+        } else {
+            $btResult = $gateway->transaction()->submitForSettlement($row['transaction_id']);
+            $success = $btResult->success;
+        }
+        if ($success) {
+            echo "True";
             array_push($ids, $row['id']);
         } else {
             print_r($btResult->errors);
+            echo "False";
         }
     }
 }
 
 if (count($ids) > 0) {
-    $idList = "(".implode(", ", $ids).")";
-    echo $idList;
-    $stmt = $db->prepare("UPDATE Orders SET submitted=0 WHERE id IN $idList");
+    if (count($ids) == 1) {
+        $stmt = $db->prepare("UPDATE Orders SET submitted=1 WHERE id=?");
+        $stmt->bind_param("i",$ids[0]);
+    } else {
+        $idList = "(".implode(", ", $ids).")";
+        $stmt = $db->prepare("UPDATE Orders SET submitted=1 WHERE id IN $idList");
+    }
     $db->exec();
 }
 ?>
