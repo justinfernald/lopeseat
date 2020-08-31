@@ -15,6 +15,8 @@ $cart = Cart::loadCart($user->id);
 
 #$nonce = 'fake-venmo-account-nonce';
 $nonce = $_POST['nonce'];
+$paymentType = $_POST['type'];
+$cardType = $_POST['cardType'];
 $useBal = $_POST['useBal'];
 $address = $_POST['address'];
 $total = $cart->getTotal();
@@ -38,12 +40,19 @@ if ($usingBalance) {
 
 $success = true;
 $result = null;
+$submitted = 1;
 if ($chargeAmount != 0) {
+  $submit = true;
+  if ($paymentType == "CreditCard" && ($cardType == "Visa" || $cardType == "MasterCard")) {
+    $submit = false;
+    $submitted = 0;
+  }
+  
   $result = $gateway->transaction()->sale([
       'amount' => strval($chargeAmount),
       'paymentMethodNonce' => $nonce,
       'options' => [
-          'submitForSettlement' => false,
+          'submitForSettlement' => $submit,
       ],
   ]);
   $success = $result->success;
@@ -51,7 +60,6 @@ if ($chargeAmount != 0) {
 
 if ($success) {
     $transId = $chargeAmount == 0 ? ($useBal == "1" ? "BALANCE" : "EARNINGS") : $result->transaction->id;
-    $submitted = $chargeAmount == 0 ? 1 : 0;
 
     $db = new db();
     $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, transaction_id, transaction_amount, submitted, placed) VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)");
