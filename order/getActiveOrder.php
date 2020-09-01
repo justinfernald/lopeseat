@@ -1,6 +1,7 @@
 <?php
 require('../api.php');
 
+$taxRate = .086;
 
 $user = $GLOBALS['user'];
 
@@ -36,6 +37,7 @@ if ($order = $results->fetch_object()) {
         result(false, "Order doesn't exist");
         exit();
     }
+    $order->tax = $order->totalPrice * $taxRate;
     $order->items = json_decode($order->items);
     result(true, $order);
     exit();
