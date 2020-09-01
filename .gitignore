@@ -5,3 +5,5 @@ secrets.json
 encryption.php
 test.php
 backgroundRunner.log
+ledger/ledger.b64
+menuItems.json

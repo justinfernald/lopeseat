@@ -133,6 +133,14 @@ class Ledger {
         return $this->write($receiver_id, $sender_id, $receiver_id, $amount, 6,2);
     }
 
+    function transferDeliveryTipFromLEB($sender_id, $receiver_id, $amount) {
+        return $this->write($sender_id, $sender_id, $receiver_id, $amount, 1, 6);
+    }
+
+    function transferDeliveryTipFromDB($sender_id, $receiver_id, $amount) {
+        return $this->write($sender_id, $sender_id, $receiver_id, $amount, 2, 6);
+    }
+
     function transferDeliveryFeeFromLEB($user_id, $amount) {
         return $this->write($user_id, $user_id, 0, $amount, 1, 5);
     }
