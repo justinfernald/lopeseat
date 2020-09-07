@@ -18,6 +18,8 @@ $gateway = new Braintree_Gateway([
 $paypalClientId = $secrets->paypal->clientId;
 $paypalSecret = $secrets->paypal->secret;
 
+$GLOBALS['secrets'] = $secrets;
+
 $GLOBALS['PCI'] = $paypalClientId;
 $GLOBALS['PS'] = $paypalSecret;
 
@@ -124,13 +126,14 @@ function sendMessage($msg, $order_id, $sender)
     $stmt->bind_param("iiss", $orderId, $user->id, $messageString, $time);
     $db->exec();
 
-    $stmt = $db->prepare("SELECT FBToken FROM Users WHERE id=?");
+    $stmt = $db->prepare("SELECT FBToken, phone FROM Users WHERE id=?");
     $stmt->bind_param("i", $recipient);
     $db->exec();
     $results = $db->get();
 
     if ($results->num_rows > 0) {
         $token = $results->fetch_assoc()['FBToken'];
+        $phone = $results->fetch_assoc()['phone'];
 
         $title = $messages->notifications->message_received->title;
         $body = $messages->notifications->message_received->body;
@@ -150,6 +153,13 @@ function sendMessage($msg, $order_id, $sender)
             $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
 
             $message = CloudMessage::withTarget('token', $token)->withData($data);
+
+            $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
+            $messagePhone = $twilio->messages->create($phone, array(
+                "body" => "New message in LopesEat app",
+                "from" => "+17207456737",
+            ));
+
             $result = $messaging->send($message);
         } catch (Exception $e) {
         }
