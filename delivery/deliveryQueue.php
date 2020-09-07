@@ -3,7 +3,7 @@ require_once '../api.php';
 
 use Kreait\Firebase;
 use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification;
+use Twilio\Rest\Client;
 
 function getQueue()
 {
@@ -59,7 +59,7 @@ function requestDeliverer($orderId)
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
 
-    $stmt = $db->prepare("SELECT name, FBToken FROM Users WHERE id=?");
+    $stmt = $db->prepare("SELECT name, FBToken, phone FROM Users WHERE id=?");
     $stmt->bind_param("i", $delivererId);
     $db->exec();
     $rowDeliverer = $db->get()->fetch_object();
@@ -80,6 +80,13 @@ function requestDeliverer($orderId)
 
         $message = CloudMessage::withTarget('token', $rowDeliverer->FBToken)->withData($data);
         $result = $messaging->send($message);
+
+        $twilio = new Client($GLOBAL['secrets']->twilio->sid, $GLOBAL['secrets']->twilio->token);
+        $messagePhone = $twilio->messages->create($rowDeliverer->phone, array(
+            "body" => "$title : $body",
+            "from" => "+17207456737",
+        ));
+
     }
 
     // need to notify next up
@@ -100,7 +107,7 @@ function getExpiredOrders()
         $stmt->bind_param("ii", $row->order_id, $row->deliverer_id);
         $db->exec();
 
-        $stmt = $db->prepare("SELECT name, FBToken FROM Users WHERE id=?");
+        $stmt = $db->prepare("SELECT name, FBToken, phone FROM Users WHERE id=?");
         $stmt->bind_param("i", $row->deliverer_id);
         $db->exec();
         $rowDeliverer = $db->get()->fetch_object();
@@ -121,6 +128,13 @@ function getExpiredOrders()
 
             $message = CloudMessage::withTarget('token', $rowDeliverer->FBToken)->withData($data);
             $notificationResult = $messaging->send($message);
+
+            $twilio = new Client($GLOBAL['secrets']->twilio->sid, $GLOBAL['secrets']->twilio->token);
+            $messagePhone = $twilio->messages->create($rowDeliverer->phone, array(
+                "body" => "$title : $body",
+                "from" => "+17207456737",
+            ));
+
         }
         array_push($orderIds, $row->order_id);
     }
