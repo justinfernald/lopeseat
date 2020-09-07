@@ -33,6 +33,68 @@
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
   }
 
+  function isRestaurantOpen($id) {
+    $days = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+
+    $currentTime = new DateTime("now", new DateTimeZone("America/Phoenix"));
+    $pastDay = $days[(intval($currentTime->format("w")) + 6) % 7];
+
+    $weekDay = $days[(intval($currentTime->format("w")))];
+
+    $db = new db();
+    $stmt = $db->prepare("SELECT `hours` FROM `Restaurants` WHERE id=?");
+    $stmt->bind_param("i", $id);
+
+    $db->exec();
+    $result = $db->get();
+
+    if ($result->num_rows == 0) {
+      // echo "No restaurant found";
+      return false;
+    }
+    
+    $hours = json_decode($result->fetch_assoc()['hours']);
+
+    if (property_exists($hours, $weekDay)) {
+      $dayHours = $hours->$weekDay->hours;
+      for ($timeIndex = 0; $timeIndex < count($dayHours); $timeIndex++) {
+        $times = $dayHours[$timeIndex];
+        $splitStartTime = array_map('intval', preg_split("/:/", $times->start));
+        $startTime = (new DateTime("now", new DateTimeZone("America/Phoenix")))->setTime($splitStartTime[0], $splitStartTime[1]);
+        $endTimeString = $times->end;
+        if (strpos($endTimeString,'.') !== false)
+          $endTimeString = preg_split("/\\./", $endTimeString)[1];
+        
+        $splitEndTime = array_map('intval', preg_split("/:/", $endTimeString));
+        $endTime = (new DateTime("now", new DateTimeZone("America/Phoenix")))->setTime($splitEndTime[0], $splitEndTime[1]);
+        if ($startTime->getTimestamp() > $endTime->getTimestamp()) {
+            $endTime.add(new DateInterval("P1D"));
+        }
+        if ($currentTime->getTimestamp() >= $startTime->getTimestamp() && $currentTime->getTimestamp() <= $endTime->getTimestamp()) {
+            return true;
+        }
+      }
+
+      if (property_exists($hours, $pastDay)) {
+        $pastHours = $hours->$pastDay->hours;
+        
+        if (count($pastHours) === 0) {
+            // echo "No hours for ".$pastDay;
+            return false;
+        }
+
+        $lastHour = $pastHours[count($pastHours) - 1];
+        $splitEndTime = array_map('intval', preg_split("/:/", $lastHour->end));
+        $endTime = (new DateTime())->setTime($splitEndTime[0], $splitEndTime[1]);
+        if ($endTime->getTimestamp() >= $currentTime->getTimestamp()) {
+            return true;
+        }
+      }
+    }
+    // echo "No hours set for ".$weekDay;
+    return false;
+  }
+
   function sendMessage($msg, $order_id, $sender) {
     $db = new db();
 
