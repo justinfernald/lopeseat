@@ -6,8 +6,6 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
 header("Content-Type: application/json");
 
-use Twilio\Rest\Client;
-
 $secrets = json_decode(file_get_contents(__DIR__ . "/config/secrets.json"));
 
 $gateway = new Braintree_Gateway([
@@ -19,8 +17,6 @@ $gateway = new Braintree_Gateway([
 
 $paypalClientId = $secrets->paypal->clientId;
 $paypalSecret = $secrets->paypal->secret;
-
-$GLOBALS['secrets'] = $secrets;
 
 $GLOBALS['PCI'] = $paypalClientId;
 $GLOBALS['PS'] = $paypalSecret;
@@ -37,9 +33,72 @@ if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
 }
 
+function isRestaurantOpen($id)
+{
+    $days = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+
+    $currentTime = new DateTime("now", new DateTimeZone("America/Phoenix"));
+    $pastDay = $days[(intval($currentTime->format("w")) + 6) % 7];
+
+    $weekDay = $days[(intval($currentTime->format("w")))];
+
+    $db = new db();
+    $stmt = $db->prepare("SELECT `hours` FROM `Restaurants` WHERE id=?");
+    $stmt->bind_param("i", $id);
+
+    $db->exec();
+    $result = $db->get();
+
+    if ($result->num_rows == 0) {
+        // echo "No restaurant found";
+        return false;
+    }
+
+    $hours = json_decode($result->fetch_assoc()['hours']);
+
+    if (property_exists($hours, $weekDay)) {
+        $dayHours = $hours->$weekDay->hours;
+        for ($timeIndex = 0; $timeIndex < count($dayHours); $timeIndex++) {
+            $times = $dayHours[$timeIndex];
+            $splitStartTime = array_map('intval', preg_split("/:/", $times->start));
+            $startTime = (new DateTime("now", new DateTimeZone("America/Phoenix")))->setTime($splitStartTime[0], $splitStartTime[1]);
+            $endTimeString = $times->end;
+            if (strpos($endTimeString, '.') !== false) {
+                $endTimeString = preg_split("/\\./", $endTimeString)[1];
+            }
+
+            $splitEndTime = array_map('intval', preg_split("/:/", $endTimeString));
+            $endTime = (new DateTime("now", new DateTimeZone("America/Phoenix")))->setTime($splitEndTime[0], $splitEndTime[1]);
+            if ($startTime->getTimestamp() > $endTime->getTimestamp()) {
+                $endTime . add(new DateInterval("P1D"));
+            }
+            if ($currentTime->getTimestamp() >= $startTime->getTimestamp() && $currentTime->getTimestamp() <= $endTime->getTimestamp()) {
+                return true;
+            }
+        }
+
+        if (property_exists($hours, $pastDay)) {
+            $pastHours = $hours->$pastDay->hours;
+
+            if (count($pastHours) === 0) {
+                // echo "No hours for ".$pastDay;
+                return false;
+            }
+
+            $lastHour = $pastHours[count($pastHours) - 1];
+            $splitEndTime = array_map('intval', preg_split("/:/", $lastHour->end));
+            $endTime = (new DateTime())->setTime($splitEndTime[0], $splitEndTime[1]);
+            if ($endTime->getTimestamp() >= $currentTime->getTimestamp()) {
+                return true;
+            }
+        }
+    }
+    // echo "No hours set for ".$weekDay;
+    return false;
+}
+
 function sendMessage($msg, $order_id, $sender)
 {
-
     $db = new db();
 
     $stmt = $db->prepare("SELECT * FROM Orders WHERE state!='completed' AND id=? AND (user_id=? OR deliverer=?)");
@@ -65,14 +124,13 @@ function sendMessage($msg, $order_id, $sender)
     $stmt->bind_param("iiss", $orderId, $user->id, $messageString, $time);
     $db->exec();
 
-    $stmt = $db->prepare("SELECT FBToken, phone FROM Users WHERE id=?");
+    $stmt = $db->prepare("SELECT FBToken FROM Users WHERE id=?");
     $stmt->bind_param("i", $recipient);
     $db->exec();
     $results = $db->get();
 
     if ($results->num_rows > 0) {
         $token = $results->fetch_assoc()['FBToken'];
-        $phone = $results->fetch_assoc()['phone'];
 
         $title = $messages->notifications->message_received->title;
         $body = $messages->notifications->message_received->body;
@@ -93,13 +151,6 @@ function sendMessage($msg, $order_id, $sender)
 
             $message = CloudMessage::withTarget('token', $token)->withData($data);
             $result = $messaging->send($message);
-
-            $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
-            $messagePhone = $twilio->messages->create($phone, array(
-                "body" => "New message in LopesEat app",
-                "from" => "+17207456737",
-            ));
-
         } catch (Exception $e) {
         }
     }
@@ -120,14 +171,17 @@ function isLoggedIn()
     return $GLOBALS['user'] != null;
 }
 
-function result($success, $message = "none")
+function result($success, $message = "none", $doExit = true)
 {
     if ($message === "none") {
         $message = $success ? "Success" : "Failed";
     }
     $out = array('success' => $success, 'msg' => $message);
     echo json_encode($out);
-    exit();
+    if ($doExit) {
+        exit();
+    }
+
 }
 
 function randomToken($n = 13)
@@ -161,6 +215,12 @@ function formatPhoneNumber($phone)
         $phone = substr($phone, -10);
     }
     return $phone;
+}
+
+function validEmail($email)
+{
+    $end = "@my.gcu.edu";
+    return substr($email, -strlen($end)) === $end;
 }
 
 function validPassword($password)
