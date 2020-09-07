@@ -1,8 +1,6 @@
 <?php
-require('../api.php');
+require '../api.php';
 
-use Kreait\Firebase;
-use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
 $orderId = $_GET['orderId'];
@@ -14,6 +12,6 @@ if (!isLoggedIn()) {
 }
 
 sendMessage($messageString, $orderId, $user->id);
+
 result(true, "Message sent");
 exit(0);
-?>

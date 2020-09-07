@@ -1,10 +1,10 @@
 <?php
-require('../api.php');
-require('../ledger/Ledger.php');
+require '../api.php';
+require '../ledger/Ledger.php';
 
 use Kreait\Firebase;
 use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification;
+use Twilio\Rest\Client;
 
 $states = array("unclaimed", "claimed", "en route", "arrived", "completed");
 
@@ -20,7 +20,7 @@ if ($deliverer->deliverer == 0) {
     exit();
 }
 
-if (!in_array(strtolower($state),$states)) {
+if (!in_array(strtolower($state), $states)) {
     result(false, "Invalid state: $state");
     exit();
 }
@@ -40,7 +40,7 @@ $user_id = $row['user_id'];
 $fee = intval($row['delivery_fee']);
 $index = array_search(strtolower($state), $states);
 
-if ($index != 1 && $row['state']=="unclaimed") {
+if ($index != 1 && $row['state'] == "unclaimed") {
     result(false, "Order must move from unclaimed to claimed");
     exit();
 }
@@ -52,12 +52,14 @@ if ($row['state'] == "completed") {
 if ($index > 0 && $index < 4) {
     $timeColumn = str_replace(" ", "_", strtolower($state));
     $stmt = $db->prepare("UPDATE Orders SET state=?, $timeColumn=CURRENT_TIMESTAMP, deliverer=? WHERE id=?");
-    $stmt->bind_param("sii",$state,$deliverer->id,$order);
+    $stmt->bind_param("sii", $state, $deliverer->id, $order);
 } else {
-    if ($index = 0)
+    if ($index = 0) {
         $deliverer->id = -1;
+    }
+
     $stmt = $db->prepare("UPDATE Orders SET state=?,deliverer=? WHERE id=?");
-    $stmt->bind_param("sii",$state,$deliverer->id,$order);
+    $stmt->bind_param("sii", $state, $deliverer->id, $order);
 }
 $db->exec();
 
@@ -68,22 +70,22 @@ $deliverer_name = $deliverer->name;
 $notification = null;
 
 switch (strtolower($state)) {
-case 'unclaimed':
-    $notification = $messages->notifications->order_unclaimed;
-    break;
-case 'claimed':
-    $notification = $messages->notifications->order_claimed;
-    break;
-case 'en route':
-    $notification = $messages->notifications->order_en_route;
-    break;
-case 'arrived':
-    $notification = $messages->notifications->order_arrived;
-    break;
-case 'completed':
-    $ledger = new Ledger();
-    $ledger->transferDeliveryEarnings($deliverer->id, $fee);
-    break;
+    case 'unclaimed':
+        $notification = $messages->notifications->order_unclaimed;
+        break;
+    case 'claimed':
+        $notification = $messages->notifications->order_claimed;
+        break;
+    case 'en route':
+        $notification = $messages->notifications->order_en_route;
+        break;
+    case 'arrived':
+        $notification = $messages->notifications->order_arrived;
+        break;
+    case 'completed':
+        $ledger = new Ledger();
+        $ledger->transferDeliveryEarnings($deliverer->id, $fee);
+        break;
 }
 
 if ($notification != null) {
@@ -93,16 +95,23 @@ if ($notification != null) {
         "title" => $title,
         "body" => $body,
         // "state" => $state
-        "state" => "order_update"
+        "state" => "order_update",
     ];
 
     if ($token != null) {
         $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
 
-        $message = CloudMessage::withTarget('token',  $token)->withData($data);
+        $message = CloudMessage::withTarget('token', $token)->withData($data);
         $result = $messaging->send($message);
+
+        $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
+        $phone = $deliverer->phone;
+        $messagePhone = $twilio->messages->create($phone, array(
+            "body" => "$title : $body",
+            "from" => "+17207456737",
+        ));
+
     }
 }
 
 result(true);
-?>
