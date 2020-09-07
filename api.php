@@ -103,13 +103,14 @@
     return $GLOBALS['user'] != null;
   }
 
-  function result($success, $message = "none") {
+  function result($success, $message = "none", $doExit = true) {
       if ($message === "none") {
         $message = $success ? "Success" : "Failed";
       }
       $out = array('success' => $success, 'msg' => $message);
       echo json_encode($out);
-      exit();
+      if ($doExit)
+        exit();
   }
 
   function randomToken($n = 13) {
@@ -140,6 +141,11 @@
       $phone = substr($phone, -10);
     }
     return $phone;
+  }
+
+  function validEmail($email) {
+    $end = "@my.gcu.edu";
+    return substr($email, -strlen($end))===$end;
   }
 
   function validPassword($password) {

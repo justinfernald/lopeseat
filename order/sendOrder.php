@@ -6,9 +6,24 @@ $deliveryfee = 4;
 
 $user = $GLOBALS['user'];
 
-if ($user == null) {
-    result(false, "Not logged in");
-    exit();
+if (!isLoggedIn()) {
+  result(false, "Not logged in");
+}
+
+$db = new db();
+
+if ($user->deliverer) {
+  $stmt = $db->prepare("SELECT `start` FROM DeliveryMode WHERE user_id=? ORDER BY `time` DESC");
+  $stmt->bind_param("i",$user->id);
+  $db->exec();
+  $result = $db->get();
+
+  if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    if (strcmp($row['start'],"1") == 0) {
+      result(false, "Currently in delivery mode.");
+    }
+  }
 }
 
 $cart = Cart::loadCart($user->id);
@@ -61,7 +76,6 @@ if ($chargeAmount != 0) {
 if ($success) {
     $transId = $chargeAmount == 0 ? ($useBal == "1" ? "BALANCE" : "EARNINGS") : $result->transaction->id;
 
-    $db = new db();
     $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, transaction_id, transaction_amount, submitted, placed) VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)");
     $stmt->bind_param("isddsdi", $user->id, $address, $total, $deliveryfee, $transId, $chargeAmount, $submitted);
     $db->exec();

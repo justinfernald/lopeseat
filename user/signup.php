@@ -34,6 +34,10 @@ if (!validPassword($password)) {
     exit();
 }
 
+if (!validEmail($email)) {
+    result(false, "You must use a GCU email");
+}
+
 $salt = randomToken();
 $vCode = randomNum();
 $pwd = hash("sha256",$password.$salt);
