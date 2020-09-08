@@ -390,6 +390,14 @@ class Cart
         return $total;
     }
 
+    public function count() {
+        $count = 0;
+        for ($i = 0; $i < count($this->items); $i++) {
+            $count += $this->items[$i]->amount;
+        }
+        return $count;
+    }
+
 }
 
 class OrderItem
