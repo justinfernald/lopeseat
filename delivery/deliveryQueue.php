@@ -162,7 +162,7 @@ function getAcceptableOrders($delivererId)
 {
     $db = new db();
 
-    $stmt = $db->prepare("SELECT Orders.id, UNIX_TIMESTAMP(DelivererRequest.time_created) * 1000 AS timeRequested FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE deliverer_id=? GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created INNER JOIN Orders ON DelivererRequest.order_id = Orders.id WHERE DelivererRequest.status_id = 1");
+    $stmt = $db->prepare("SELECT Orders.id, UNIX_TIMESTAMP(DelivererRequest.time_created) * 1000 AS timeRequested, Restaurants.name AS restaurantName FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE deliverer_id=? GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created INNER JOIN Orders ON DelivererRequest.order_id = Orders.id INNER JOIN OrderItems ON Orders.id = OrderItems.order_id INNER JOIN MenuItems ON OrderItems.item_id = MenuItems.id INNER JOIN Restaurants ON MenuItems.restaurant_id = Restaurants.id WHERE DelivererRequest.status_id = 1");
     $stmt->bind_param("i", $delivererId);
     $db->exec();
     $result = $db->get();
