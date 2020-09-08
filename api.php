@@ -77,6 +77,7 @@ function isRestaurantOpen($id, $currentTime = null)
                 $endTime . add(new DateInterval("P1D"));
             }
             if ($currentTime->getTimestamp() >= $startTime->getTimestamp() && $currentTime->getTimestamp() <= $endTime->getTimestamp()) {
+                // echo "In time from today";
                 return true;
             }
         }
@@ -92,7 +93,9 @@ function isRestaurantOpen($id, $currentTime = null)
             $lastHour = $pastHours[count($pastHours) - 1];
             $splitEndTime = array_map('intval', preg_split("/:/", $lastHour->end));
             $endTime = (new DateTime())->setTime($splitEndTime[0], $splitEndTime[1]);
+            $endTime->sub(new DateInterval("P1D"));
             if ($endTime->getTimestamp() >= $currentTime->getTimestamp()) {
+                // echo "In time from yesterday";
                 return true;
             }
         }
