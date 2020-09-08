@@ -59,35 +59,18 @@ function requestDeliverer($orderId)
     $stmt->bind_param("ii", $orderId, $delivererId);
     $db->exec();
 
-    $stmt = $db->prepare("SELECT name, FBToken, phone FROM Users WHERE id=?");
-    $stmt->bind_param("i", $delivererId);
-    $db->exec();
-    $rowDeliverer = $db->get()->fetch_object();
+    $deliverer = getUser($delivererId);
 
     // need to notify deliverer
     $notification = $GLOBALS['messages']->notifications->deliverer_request;
 
-    $title = str_replace("%deliverer%", $rowDeliverer->name, $notification->title);
-    $body = str_replace("%deliverer%", $rowDeliverer->name, $notification->body);
+    $title = str_replace("%deliverer%", $deliverer->name, $notification->title);
+    $body = str_replace("%deliverer%", $deliverer->name, $notification->body);
     $data = [
-        "title" => $title,
-        "body" => $body,
         "state" => "deliverer_request/$orderId",
     ];
 
-    if ($rowDeliverer->FBToken != null) {
-        $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
-
-        $message = CloudMessage::withTarget('token', $rowDeliverer->FBToken)->withData($data);
-        $result = $messaging->send($message);
-
-        $twilio = new Client($GLOBAL['secrets']->twilio->sid, $GLOBAL['secrets']->twilio->token);
-        $messagePhone = $twilio->messages->create($rowDeliverer->phone, array(
-            "body" => "$title : $body - Open the LopesEat app to message your runner",
-            "from" => "+17207456737",
-        ));
-
-    }
+    sendNotification($deliverer, $title, $body, $data);
 
     // need to notify next up
 }

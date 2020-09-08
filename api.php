@@ -35,6 +35,35 @@ if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
 }
 
+function sendNotification($user, $title, $body, $extraData = null) {
+    $data = [
+    "title" => $title,
+    "body" => $body
+    ];
+
+    if ($extraData !== null) {
+        foreach ($extraData as $key => $value) {
+            $data[$key] = $value;
+        }
+    }
+
+    $token = $user->FBToken;
+
+    if ($token != null && $token != "null" && $token != "") {
+        $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
+
+        $message = CloudMessage::withTarget('token', $token)->withData($data);
+        $result = $messaging->send($message);
+    } else {
+        $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
+        $phone = $user->phone;
+        $messagePhone = $twilio->messages->create($phone, array(
+            "body" => "$title : $body",
+            "from" => "+17207456737",
+        ));
+    }
+}
+
 function isRestaurantOpen($id, $currentTime = null)
 {
     $days = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
