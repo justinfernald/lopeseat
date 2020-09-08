@@ -37,13 +37,13 @@ if ($restaurant != -1 && $restaurant != $result->fetch_assoc()['restaurant_id'])
     result(false, "Item is from a different restaurant.");
 }
 
-if (sizeof($cart->items) >= 3) {
+if ($cart->count() >= 3) {
     result(false, "You can only order up to 3 items.");
 }
 
 $stmt = $db->prepare("INSERT INTO `CartItems` (`user_id`, `item_id`, `amount`, `comment`, `options`) VALUES (?,?,?,?,?)");
 $stmt->bind_param("sssss", $user->id, $itemId, $amount, $comment, $options);
 if ($db->exec()) {
-    result(true);
+    result(true, array("id" => $GLOBALS['conn']->insert_id));
 }
 ?>

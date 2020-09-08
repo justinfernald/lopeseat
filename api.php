@@ -35,11 +35,13 @@ if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
 }
 
-function isRestaurantOpen($id)
+function isRestaurantOpen($id, $currentTime = null)
 {
     $days = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 
-    $currentTime = new DateTime("now", new DateTimeZone("America/Phoenix"));
+    if ($currentTime === null)
+      $currentTime = new DateTime("now", new DateTimeZone("America/Phoenix"));
+    
     $pastDay = $days[(intval($currentTime->format("w")) + 6) % 7];
 
     $weekDay = $days[(intval($currentTime->format("w")))];
@@ -75,6 +77,7 @@ function isRestaurantOpen($id)
                 $endTime . add(new DateInterval("P1D"));
             }
             if ($currentTime->getTimestamp() >= $startTime->getTimestamp() && $currentTime->getTimestamp() <= $endTime->getTimestamp()) {
+                // echo "In time from today";
                 return true;
             }
         }
@@ -90,7 +93,9 @@ function isRestaurantOpen($id)
             $lastHour = $pastHours[count($pastHours) - 1];
             $splitEndTime = array_map('intval', preg_split("/:/", $lastHour->end));
             $endTime = (new DateTime())->setTime($splitEndTime[0], $splitEndTime[1]);
+            $endTime->sub(new DateInterval("P1D"));
             if ($endTime->getTimestamp() >= $currentTime->getTimestamp()) {
+                // echo "In time from yesterday";
                 return true;
             }
         }
@@ -383,6 +388,14 @@ class Cart
             $total += $this->items[$i]->getTotal();
         }
         return $total;
+    }
+
+    public function count() {
+        $count = 0;
+        for ($i = 0; $i < count($this->items); $i++) {
+            $count += $this->items[$i]->amount;
+        }
+        return $count;
     }
 
 }

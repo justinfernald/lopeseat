@@ -26,7 +26,16 @@ if ($user->deliverer) {
   }
 }
 
+$restaurant = -1;
+
 $cart = Cart::loadCart($user->id);
+if (sizeof($cart->items)) {
+    $restaurant = $cart->items[0]->restaurant_id;
+}
+
+if (!isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("PT30M")))) {
+  result(false, "This store is no longer accepting orders for today.");
+}
 
 #$nonce = 'fake-venmo-account-nonce';
 $nonce = $_POST['nonce'];
