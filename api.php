@@ -35,11 +35,13 @@ if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
 }
 
-function isRestaurantOpen($id)
+function isRestaurantOpen($id, $currentTime = null)
 {
     $days = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 
-    $currentTime = new DateTime("now", new DateTimeZone("America/Phoenix"));
+    if ($currentTime === null)
+      $currentTime = new DateTime("now", new DateTimeZone("America/Phoenix"));
+    
     $pastDay = $days[(intval($currentTime->format("w")) + 6) % 7];
 
     $weekDay = $days[(intval($currentTime->format("w")))];

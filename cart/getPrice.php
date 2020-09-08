@@ -11,10 +11,21 @@ if ($user == null) {
     exit();
 }
 
+$canOrder = true;
+
+$restaurant = -1;
+
 $cart = Cart::loadCart($user->id);
+if (sizeof($cart->items)) {
+    $restaurant = $cart->items[0]->restaurant_id;
+}
+
+if (!isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("P30M")))) {
+    $canOrder = false;
+}
 
 $subTotal = $cart->getTotal();
 $tax = $subTotal * $taxPercentage;
 $total = $subTotal + $tax;
-echo json_encode(array("subtotal" => $subTotal, "tax" => $tax, "total" => $total, "delivery_fee" => $fee));
+echo json_encode(array("subtotal" => $subTotal, "tax" => $tax, "total" => $total, "delivery_fee" => $fee, "can_order" => $canOrder));
 ?>
