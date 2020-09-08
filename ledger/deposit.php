@@ -48,6 +48,10 @@ if ($result->success) {
     $ledger = new Ledger();
     
     $ledger->transferCashToLEB($user->id, $receiver, $amount);
+
+    if (isset($_POST['to']))
+        sendNotification($user, "You got a gift!", $user->name." sent you $".number_format($amount, 2, '.', ''));
+
     result(true, $result->transaction->status);
 } else {
     result($result->success, $result->transaction->status);
