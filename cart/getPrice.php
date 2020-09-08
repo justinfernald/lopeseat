@@ -20,7 +20,7 @@ if (sizeof($cart->items)) {
     $restaurant = $cart->items[0]->restaurant_id;
 }
 
-if (!isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("P30M")))) {
+if ($restaurant !== -1 && !isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("P30M")))) {
     $canOrder = false;
 }
 
