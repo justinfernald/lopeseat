@@ -83,7 +83,7 @@ function requestDeliverer($orderId)
 
         $twilio = new Client($GLOBAL['secrets']->twilio->sid, $GLOBAL['secrets']->twilio->token);
         $messagePhone = $twilio->messages->create($rowDeliverer->phone, array(
-            "body" => "$title : $body",
+            "body" => "$title : $body - Open the LopesEat app to message your runner",
             "from" => "+17207456737",
         ));
 
@@ -94,7 +94,7 @@ function requestDeliverer($orderId)
 
 function getExpiredOrders()
 {
-    $timeAllowed = 30; // in seconds
+    $timeAllowed = 90; // in seconds
     $db = new db();
     // there is no need to convert to milliseconds since UNIX_TIMESTAMP in sql returns in seconds
     $stmt = $db->prepare("SELECT DelivererRequest.order_id, DelivererRequest.deliverer_id FROM (SELECT order_id, MAX(time_created) AS latest_time FROM DelivererRequest GROUP BY DelivererRequest.order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.latest_time = DelivererRequest.time_created WHERE DelivererRequest.status_id='1' AND UNIX_TIMESTAMP(DelivererRequest.time_created) < (UNIX_TIMESTAMP(CURRENT_TIMESTAMP) - ?) ORDER BY DelivererRequest.time_created");
@@ -162,8 +162,8 @@ function getAcceptableOrders($delivererId)
 {
     $db = new db();
 
-    $stmt = $db->prepare("SELECT Orders.id, UNIX_TIMESTAMP(DelivererRequest.time_created) * 1000 AS timeRequested FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE deliverer_id=19 GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created INNER JOIN Orders ON DelivererRequest.order_id = Orders.id WHERE DelivererRequest.status_id = 1");
-
+    $stmt = $db->prepare("SELECT Orders.id, UNIX_TIMESTAMP(DelivererRequest.time_created) * 1000 AS timeRequested FROM (SELECT order_id, MAX(time_created) AS time_max FROM `DelivererRequest` WHERE deliverer_id=? GROUP BY order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.time_max = DelivererRequest.time_created INNER JOIN Orders ON DelivererRequest.order_id = Orders.id WHERE DelivererRequest.status_id = 1");
+    $stmt->bind_param("i", $delivererId);
     $db->exec();
     $result = $db->get();
     $orders = array();

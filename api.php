@@ -156,7 +156,7 @@ function sendMessage($msg, $order_id, $sender)
 
             $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
             $messagePhone = $twilio->messages->create($phone, array(
-                "body" => "New message in LopesEat app",
+                "body" => "New message in LopesEat app - Open the LopesEat app to message your runner",
                 "from" => "+17207456737",
             ));
 

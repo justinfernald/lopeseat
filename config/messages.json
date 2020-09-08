@@ -2,7 +2,7 @@
     "notifications": {
         "order_unclaimed": {
             "title": "Order Unclaimed",
-            "body": "Unfortunately the previous deliverer is no longer available. Please wait while a new deliverer claims the order."
+            "body": "Unfortunately the previous runner tripped and is no longer available. Please wait while a new runner claims the order."
         },
         "order_claimed": {
             "title": "Order Claimed",
@@ -14,7 +14,7 @@
         },
         "order_arrived": {
             "title": "Order Arrived",
-            "body": "Your deliverer is approaching with your order."
+            "body": "Your runner is has arrived with your order. Hurry before they eat it."
         },
         "message_received": {
             "title": "New message from %sender%",

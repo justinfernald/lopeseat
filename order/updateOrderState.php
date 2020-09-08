@@ -98,20 +98,20 @@ if ($notification != null) {
         "state" => "order_update",
     ];
 
-    if ($token != null) {
+    if ($token != null && $token != "null" && $token != "") {
         $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
 
         $message = CloudMessage::withTarget('token', $token)->withData($data);
         $result = $messaging->send($message);
-
+    } else {
         $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
-        $phone = $deliverer->phone;
+        $phone = $user->phone;
         $messagePhone = $twilio->messages->create($phone, array(
-            "body" => "$title : $body",
+            "body" => "$title : $body - Open the LopesEat app to message your runner",
             "from" => "+17207456737",
         ));
-
     }
+
 }
 
 result(true);
