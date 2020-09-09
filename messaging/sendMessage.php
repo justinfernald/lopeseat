@@ -1,8 +1,6 @@
 <?php
 require '../api.php';
 
-use Kreait\Firebase\Messaging\Notification;
-
 $orderId = $_GET['orderId'];
 $messageString = $_POST['message'];
 $user = $GLOBALS['user'];

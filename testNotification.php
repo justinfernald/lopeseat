@@ -22,8 +22,13 @@ $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
 
 $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
 
-$message = CloudMessage::withTarget('token',  $token)
-    ->withNotification(Notification::create($title, $body));
+$data = [
+    "title" => $title,
+    "body" => $body,
+    "state" => "test",
+];
+
+$message = CloudMessage::withTarget('token', $token)->withData($data);
 
 try {
     $result = $messaging->send($message);

@@ -8,6 +8,11 @@ header("Content-Type: application/json");
 
 $secrets = json_decode(file_get_contents(__DIR__ . "/config/secrets.json"));
 
+use Kreait\Firebase\Messaging\Notification;
+use Kreait\Firebase;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Twilio\Rest\Client;
+
 $gateway = new Braintree_Gateway([
     'environment' => $secrets->braintree->environment,
     'merchantId' => $secrets->braintree->merchantId,
@@ -29,7 +34,7 @@ $GLOBALS['sql_pass'] = $secrets->sql->pass;
 $messages = json_decode(file_get_contents(__DIR__ . "/config/messages.json"));
 $GLOBALS['messages'] = $messages;
 
-$GLOBALS['serviceAccountPath'] = sprintf("%s/config/service_account.json", __DIR__);
+$GLOBALS['serviceAccountPath'] = __DIR__."/config/service_account.json";
 
 if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
@@ -133,11 +138,12 @@ function isRestaurantOpen($id, $currentTime = null)
     return false;
 }
 
-function sendMessage($msg, $order_id, $sender)
+function sendMessage($messageString, $orderId, $sender)
 {
     $db = new db();
+    $user = getUser($sender);
 
-    $stmt = $db->prepare("SELECT * FROM Orders WHERE state!='completed' AND id=? AND (user_id=? OR deliverer=?)");
+    $stmt = $db->prepare("SELECT * FROM `Orders` WHERE `state`!='completed' AND `id`=? AND (`user_id`=? OR `deliverer`=?)");
     $stmt->bind_param("iii", $orderId, $user->id, $user->id);
 
     $db->exec();
@@ -166,8 +172,9 @@ function sendMessage($msg, $order_id, $sender)
     $results = $db->get();
 
     if ($results->num_rows > 0) {
-        $token = $results->fetch_assoc()['FBToken'];
-        $phone = $results->fetch_assoc()['phone'];
+        $row = $results->fetch_assoc();
+        $token = $row['FBToken'];
+        $phone = $row['phone'];
 
         $title = $messages->notifications->message_received->title;
         $body = $messages->notifications->message_received->body;
@@ -183,20 +190,16 @@ function sendMessage($msg, $order_id, $sender)
             "sender" => $user->name,
         ];
 
-        try {
-            $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
+        $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
 
-            $message = CloudMessage::withTarget('token', $token)->withData($data);
+        $message = CloudMessage::withTarget('token', $token)->withData($data);
+        $result = $messaging->send($message);
 
-            $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
-            $messagePhone = $twilio->messages->create($phone, array(
-                "body" => "New message in LopesEat app - Open the LopesEat app to message your runner",
-                "from" => "+17207456737",
-            ));
-
-            $result = $messaging->send($message);
-        } catch (Exception $e) {
-        }
+        $twilio = new Client($GLOBALS['secrets']->twilio->sid, $GLOBALS['secrets']->twilio->token);
+        $messagePhone = $twilio->messages->create($phone, array(
+            "body" => "New message in LopesEat app - Open the LopesEat app to message your runner",
+            "from" => "+17207456737",
+        ));
     }
 }
 

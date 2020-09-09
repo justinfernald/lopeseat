@@ -12,7 +12,7 @@ $ledger = new Ledger();
 $valid = $ledger->validateDatabase();
 $report = $ledger->report;
 
-echo json_encode(Array(valid => $valid, report => $report));
+echo json_encode(Array("valid" => $valid, "report" => $report));
 
 if (!$valid) {
     $to = "cronupdate@lopeseat.com";

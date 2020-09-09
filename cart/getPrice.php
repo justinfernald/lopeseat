@@ -12,6 +12,7 @@ if ($user == null) {
 }
 
 $canOrder = true;
+$message = null;
 
 $restaurant = -1;
 
@@ -22,10 +23,32 @@ if (sizeof($cart->items)) {
 
 if ($restaurant !== -1 && !isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("PT30M")))) {
     $canOrder = false;
+    $message = "This restaurant has finished accepting orders for today.";
+}
+
+$db = new db();
+
+$stmt = $db->prepare("SELECT count(id) as `count` FROM Orders WHERE `user_id`=? AND `state`<>'completed'");
+$stmt->bind_param("i", $user->id);
+$db->exec();
+$result = $db->get();
+
+$row = $result->fetch_assoc();
+
+if ($row['count'] > 0) {
+    $canOrder = false;
+    $message = "You already have an active order.";
 }
 
 $subTotal = $cart->getTotal();
 $tax = $subTotal * $taxPercentage;
 $total = $subTotal + $tax;
-echo json_encode(array("subtotal" => $subTotal, "tax" => $tax, "total" => $total, "delivery_fee" => $fee, "can_order" => $canOrder));
+echo json_encode(array(
+    "subtotal" => $subTotal, 
+    "tax" => $tax, 
+    "total" => $total, 
+    "delivery_fee" => $fee, 
+    "can_order" => $canOrder,
+    "msg" => $message
+));
 ?>
