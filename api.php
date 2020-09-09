@@ -59,14 +59,14 @@ function sendNotification($user, $title, $body, $extraData = null) {
 
         $message = CloudMessage::withTarget('token', $token)->withData($data);
         $result = $messaging->send($message);
-    } else {
-        $twilio = new Client($secrets->twilio->sid, $secrets->twilio->token);
-        $phone = $user->phone;
-        $messagePhone = $twilio->messages->create($phone, array(
-            "body" => "$title : $body",
-            "from" => "+17207456737",
-        ));
     }
+    
+    $twilio = new Client($GLOBALS['secrets']->twilio->sid, $GLOBALS['secrets']->twilio->token);
+    $phone = $user->phone;
+    $messagePhone = $twilio->messages->create($phone, array(
+        "body" => "$title : $body",
+        "from" => "+17207456737",
+    ));
 }
 
 function isRestaurantOpen($id, $currentTime = null)
@@ -140,6 +140,10 @@ function isRestaurantOpen($id, $currentTime = null)
 
 function sendMessage($messageString, $orderId, $sender)
 {
+    if (strcmp($messageString, "") === 0) {
+        result(false, "Empty message");
+    }
+
     $db = new db();
     $user = getUser($sender);
 
@@ -190,10 +194,13 @@ function sendMessage($messageString, $orderId, $sender)
             "sender" => $user->name,
         ];
 
-        $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
+        
+        if ($token != null && $token != "null" && $token != "") {
+            $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
 
-        $message = CloudMessage::withTarget('token', $token)->withData($data);
-        $result = $messaging->send($message);
+            $message = CloudMessage::withTarget('token', $token)->withData($data);
+            $result = $messaging->send($message);
+        }
 
         $twilio = new Client($GLOBALS['secrets']->twilio->sid, $GLOBALS['secrets']->twilio->token);
         $messagePhone = $twilio->messages->create($phone, array(
