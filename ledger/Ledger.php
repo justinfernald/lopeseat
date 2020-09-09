@@ -37,7 +37,7 @@ class Ledger {
         $ledgerJson = json_encode($ledger);
         $encLedger = openssl_encrypt($ledgerJson, 'aes-256-cbc', $GLOBALS['key'], 0, $GLOBALS['iv']);
 
-        $encFile = fopen("ledger.b64", "w") or die("Unable to open ledger file!");
+        $encFile = fopen(__DIR__."ledger.b64", "w") or die("Unable to open ledger file!");
         fwrite($encFile, $encLedger);
         fclose($encFile);
     }
@@ -75,7 +75,7 @@ class Ledger {
                 }
             }
             if (sizeof($badCols) > 0)
-                array_push($report, Array(id => $row['id'], user_id => $ledgerRow["user_id"], columns => $badCols, correction => $ledgerRow));
+                array_push($report, Array("id" => $row['id'], "user_id" => $ledgerRow["user_id"], "columns" => $badCols, "correction" => $ledgerRow));
         }
 
         if ($result->num_rows > sizeof($ledger)) {
@@ -120,6 +120,8 @@ class Ledger {
             "balance" => $newBalance, 
             "time" => $timeStamp
         );
+
+        error_log("Writing to ledger: ".json_encode($dataObj));
 
         $this->writeEncrypted($dataObj);
         return true;

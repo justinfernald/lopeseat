@@ -20,7 +20,7 @@ if ($user->deliverer) {
 
   if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
-    if (strcmp($row['start'],"1") == 0) {
+    if (strcmp($row['start'],"1") === 0) {
       result(false, "Currently in delivery mode.");
     }
   }
@@ -34,7 +34,18 @@ if (sizeof($cart->items)) {
 }
 
 if (!isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("PT30M")))) {
-  result(false, "This store is no longer accepting orders for today.");
+  result(false, "This restaurant has finished accepting orders for today.");
+}
+
+$stmt = $db->prepare("SELECT count(id) as `count` FROM Orders WHERE `user_id`=? AND `state`<>'completed'");
+$stmt->bind_param("i", $user->id);
+$db->exec();
+$result = $db->get();
+
+$row = $result->fetch_assoc();
+
+if ($row['count'] > 0) {
+  result(false, "You already have an active order.");
 }
 
 #$nonce = 'fake-venmo-account-nonce';
