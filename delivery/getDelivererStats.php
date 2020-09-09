@@ -55,7 +55,7 @@ $message = array(
     "deliveryCount" => $row->count,
     "averageRating" => $row->average_rating,
     "averageDeliveryTime" => $row->average_delivery_time,
-    "amountEarned" => $row->amount_earned,
+    "amountEarned" => $row->amount_earned / 2,
 );
 result(true, $message)
 ?>
