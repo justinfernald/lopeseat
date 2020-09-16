@@ -52,12 +52,25 @@ function sendNotification($user, $title, $body, $extraData = null) {
         }
     }
 
-    $token = $user->FBToken;
+    $db = new db();
+    
+    $stmt = $db->prepare("SELECT FBToken FROM `Users` WHERE id=?");
+    $stmt->bind_param("i", $user->id);
+    $db->exec();
+    $result = $db->get();
+    $token = $result->fetch_assoc()['FBToken'];
 
     if ($token != null && $token != "null" && $token != "") {
-        $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
+        echo $user->id;
+        $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
+        $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
 
         $message = CloudMessage::withTarget('token', $token)->withData($data);
+
+        $notification = Notification::create($title, $body);
+        
+        $message = $message->withNotification($notification);
+
         $result = $messaging->send($message);
     }
     

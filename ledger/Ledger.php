@@ -37,7 +37,7 @@ class Ledger {
         $ledgerJson = json_encode($ledger);
         $encLedger = openssl_encrypt($ledgerJson, 'aes-256-cbc', $GLOBALS['key'], 0, $GLOBALS['iv']);
 
-        $encFile = fopen(__DIR__."ledger.b64", "w") or die("Unable to open ledger file!");
+        $encFile = fopen(__DIR__."/ledger.b64", "w") or die("Unable to open ledger file!");
         fwrite($encFile, $encLedger);
         fclose($encFile);
     }

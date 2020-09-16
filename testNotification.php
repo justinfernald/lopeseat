@@ -30,6 +30,10 @@ $data = [
 
 $message = CloudMessage::withTarget('token', $token)->withData($data);
 
+$notification = Notification::create($title, $body);
+
+$message = $message->withNotification($notification);    
+
 try {
     $result = $messaging->send($message);
     var_dump($result);

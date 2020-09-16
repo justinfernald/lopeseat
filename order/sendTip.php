@@ -21,6 +21,20 @@ $result = $db->get();
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
 
+    $success = false;
+    if ($row['submitted'] == 0) {
+        if ($secrets->braintree->environment == "sandbox") {
+            $success = true;
+        } else {
+            $btResult = $gateway->transaction()->submitForSettlement($row['transaction_id'], $row['transaction_amount'] + $amount);
+            $success = $btResult->success;
+        }
+
+        $stmt = $db->prepare("UPDATE Orders SET submitted=1 WHERE id=?");
+        $stmt->bind_param("i", $row['id']);
+        $db->exec();
+    }
+
     if ($row['submitted'] == 1) {
         $nonce = $_POST['nonce'];
         $useBal = $_POST['useBal'];
@@ -65,21 +79,7 @@ if ($result->num_rows > 0) {
     $db->exec();
     $ledger->transferDeliveryTip($user->id,$row['deliverer'],$amount);
 
-    $success = FALSE;
-    if ($secrets->braintree->environment == "sandbox") {
-        $success = TRUE;
-    } else {
-        $btResult = $gateway->transaction()->submitForSettlement($row['transaction_id'], $row['transaction_amount'] + $amount);
-        $success = $btResult->success;
-    }
-
-    if ($success) {
-        $stmt = $db->prepare("UPDATE Orders SET submitted=1 WHERE id=?");
-        $stmt->bind_param("i", $row['id']);
-        $db->exec();
-    }
-
-    result($success);
+    result(true);
 } else {
     result(false, "No tippable order");
 }
