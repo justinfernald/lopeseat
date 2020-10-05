@@ -18,7 +18,7 @@ $payouts = Array();
 
 while($row = $result->fetch_assoc()) {
     $status = $row['status'];
-    if ($status !== "SUCCESS") {
+    if ($status !== "SUCCESS" && $status !== "REQUESTED") {
         $status = getPayoutStatus($row['batch_id']);
         $stmt = $db->prepare("UPDATE Payouts SET `status`=? WHERE id=?");
         $stmt->bind_param("si",$status,$row['id']);

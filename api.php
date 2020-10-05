@@ -315,7 +315,7 @@ function getPaypalToken()
 
     $ch = curl_init();
 
-    curl_setopt($ch, CURLOPT_URL, "https://api.sandbox.paypal.com/v1/oauth2/token");
+    curl_setopt($ch, CURLOPT_URL, "https://api.paypal.com/v1/oauth2/token");
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
@@ -338,7 +338,7 @@ function getPayoutStatus($batchId)
 {
     $paypalToken = getPaypalToken();
 
-    $url = "https://api.sandbox.paypal.com/v1/payments/payouts/$batchId";
+    $url = "https://api.paypal.com/v1/payments/payouts/$batchId";
 
     $ch = curl_init();
 

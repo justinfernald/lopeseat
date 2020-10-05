@@ -1,4 +1,5 @@
 <?php
+$secrets = json_decode(file_get_contents(__DIR__ . "/config/secrets.json"));
 
 function addToHours(&$hours, $schedObj, $day) {
     $dayObj = array();
@@ -20,14 +21,11 @@ function addToHours(&$hours, $schedObj, $day) {
 }
 
 $server = "zerenthalrpg.com";
-$user = "zerentha_main";
-$pass = "61MYql09";
+$user = $secrets->sql->user;
+$pass = $secrets->sql->pass;
 $db = "zerentha_lopeseat";
 
 $conn = new mysqli($server, $user, $pass, $db);
-
-$stmt = $conn->prepare("INSERT INTO `Orders` (`id`, `user_id`, `address`, `deliverer`, `total`, `delivery_fee`, `state`) VALUES (NULL, '1234', 'asdf', '0', '12', '3', 'unclaimed')");
-$stmt->execute();
 
 $days = array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
 

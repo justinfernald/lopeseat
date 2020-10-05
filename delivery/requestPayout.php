@@ -19,7 +19,7 @@ if ($payoutTotal == 0) {
     exit();
 }
 
-$url = "https://api.sandbox.paypal.com/v1/payments/payouts";
+$url = "https://api.paypal.com/v1/payments/payouts";
 
 $content = json_encode(array(
     "sender_batch_header"=>array(
@@ -53,16 +53,20 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 $result = curl_exec($ch);
+$jsonResult = json_decode($result);
 if (curl_errno($ch)) {
-    print "Error: " . curl_error($ch);
-    exit();
+    result(false, "Error: " . curl_error($ch));
+} else {
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($http_code !== 200) {
+        result(false, $jsonResult);
+    }
 }
 curl_close($ch);
 
-$jsonResult = json_decode($result);
 $batchId = $jsonResult->batch_header->payout_batch_id;
 
 $ledger->transferCashFromDB($user->id, $payoutTotal, $batchId);
 
-echo $result;
+result(true, $jsonResult);
 ?>
