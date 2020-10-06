@@ -19,6 +19,11 @@ $restaurant = -1;
 $cart = Cart::loadCart($user->id);
 if (sizeof($cart->items)) {
     $restaurant = $cart->items[0]->restaurant_id;
+
+    if (!$cart->isAvailable()) {
+        $canOrder = false;
+        $message = $cart->unavailable[0]->name." is out of stock.";
+    }
 }
 
 if ($restaurant !== -1 && !isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("PT30M")))) {

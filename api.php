@@ -376,6 +376,7 @@ class CartItem
     public $price;
     public $image;
     public $specialInstructions;
+    public $amount_available;
 
     public function getTotal()
     {
@@ -412,16 +413,24 @@ class Cart
 {
 
     public $items = [];
+    public $unavailable = [];
 
     public static function loadCart($userId)
     {
         $cart = new Cart();
         $items = [];
         $db = new db();
-        $stmt = $db->prepare("SELECT CartItems.id, CartItems.user_id, CartItems.item_id, CartItems.amount, CartItems.comment, CartItems.options,
-      MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, MenuItems.items, MenuItems.specialInstructions FROM CartItems
-      INNER JOIN MenuItems
-      ON CartItems.user_id=? AND CartItems.item_id = MenuItems.id");
+        $stmt = $db->prepare("SELECT CartItems.id, CartItems.user_id, CartItems.item_id, CartItems.amount, CartItems.comment, 
+        CartItems.options, MenuItems.restaurant_id, MenuItems.name, MenuItems.price, MenuItems.image, MenuItems.items, 
+        MenuItems.specialInstructions, m.amount_available 
+        FROM CartItems 
+        INNER JOIN MenuItems ON 
+        CartItems.user_id=? AND CartItems.item_id = MenuItems.id 
+        INNER JOIN 
+        (SELECT a.amount_available, a.item_id FROM InventoryChanges a 
+            INNER JOIN (SELECT item_id, MAX(id) AS m_id FROM InventoryChanges GROUP BY item_id) AS b ON b.m_id = a.id) AS m 
+            ON m.item_id=CartItems.item_id OR ((SELECT count(*) FROM InventoryChanges i WHERE i.item_id=CartItems.item_id)=0 
+            AND m.item_id=0)");
         $stmt->bind_param("i", $userId);
         $db->exec();
         $result = $db->get();
@@ -448,6 +457,34 @@ class Cart
             $count += $this->items[$i]->amount;
         }
         return $count;
+    }
+
+    public function isAvailable() {
+        $unavailable = [];
+        if (sizeof($items) > 0) {
+            //Check if restaurant tracks inventory
+            $stmt = $db->prepare("SELECT track_inventory FROM Restaurants WHERE id=?");
+            $stmt->bind_param("i", $items[0]->restaurant_id);
+            $db->exec();
+            $result = $db->get();
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                    if ($row['track_inventory'] == 1) {
+                        // Make sure cart items don't exceed available inventory
+                        for ($i = 0; $i < sizeof($cart->items); $i++) {
+                        $cartItem = $cart->items[$i];
+                        if ($cartItem->amount_available < $cartItem->amount) {
+                            array_push($unavailable, $cartItem);
+                        }
+                    }
+                }
+            }
+        }
+        if (sizeof($unavailable) > 0) {
+            $this->unavailable = $unavailable;
+            return false;
+        }
+        return true;
     }
 
 }
