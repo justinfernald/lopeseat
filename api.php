@@ -414,6 +414,7 @@ class Cart
 
     public $items = [];
     public $unavailable = [];
+    public $track_inv = false;
 
     public static function loadCart($userId)
     {
@@ -439,6 +440,19 @@ class Cart
             array_push($items, $item);
         }
         $cart->items = $items;
+
+        if (sizeof($cart->items) > 0) {
+            $stmt = $db->prepare("SELECT track_inventory FROM Restaurants WHERE id=?");
+            $stmt->bind_param("i", $cart->items[0]->restaurant_id);
+            $db->exec();
+            $result = $db->get();
+
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $cart->track_inv = $row['track_inventory'] == 1 ? true : false;
+            }
+        }
+
         return $cart;
     }
 
@@ -461,21 +475,14 @@ class Cart
 
     public function isAvailable() {
         $unavailable = [];
-        if (sizeof($items) > 0) {
+        if (sizeof($this->items) > 0) {
             //Check if restaurant tracks inventory
-            $stmt = $db->prepare("SELECT track_inventory FROM Restaurants WHERE id=?");
-            $stmt->bind_param("i", $items[0]->restaurant_id);
-            $db->exec();
-            $result = $db->get();
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                    if ($row['track_inventory'] == 1) {
-                        // Make sure cart items don't exceed available inventory
-                        for ($i = 0; $i < sizeof($cart->items); $i++) {
-                        $cartItem = $cart->items[$i];
-                        if ($cartItem->amount_available < $cartItem->amount) {
-                            array_push($unavailable, $cartItem);
-                        }
+            if ($this->track_inv) {
+                // Make sure cart items don't exceed available inventory
+                for ($i = 0; $i < sizeof($this->items); $i++) {
+                    $cartItem = $this->items[$i];
+                    if ($cartItem->amount_available < $cartItem->amount) {
+                        array_push($unavailable, $cartItem);
                     }
                 }
             }

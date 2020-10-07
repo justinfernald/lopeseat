@@ -66,16 +66,21 @@ $usingBalance = isset($_POST['useBal']);
 
 $chargeAmount = $deliveryfee;
 
+if ($cart->track_inv) {
+  $chargeAmount = $chargeAmount + $total;
+}
+
 if ($usingBalance) {
   $ledger = new Ledger();
   $balance = $ledger->getQuickBalance($user->id, intval($useBal));
   
-  $chargeAmount = ($balance > $deliveryfee) ? 0 : $deliveryfee - $balance;
+  $transferAmount = ($balance > $chargeAmount) ? $chargeAmount : $balance;
+  $chargeAmount = $chargeAmount - $transferAmount;
 
   if ($useBal == "1") {
-    $ledger->transferDeliveryFeeFromLEB($user->id, $deliveryfee - $chargeAmount);
+    $ledger->transferDeliveryFeeFromLEB($user->id, $transferAmount);
   } else {
-    $ledger->transferDeliveryFeeFromDB($user->id, $deliveryfee - $chargeAmount);
+    $ledger->transferDeliveryFeeFromDB($user->id, $transferAmount);
   }
 }
 
@@ -111,6 +116,11 @@ if ($success) {
         $item = $cart->items[$i];
         $stmt = $db->prepare("INSERT INTO OrderItems (order_id, item_id, amount, comment, options) VALUES (?,?,?,?,?)");
         $stmt->bind_param("iiiss", $order_id, $item->item_id, $item->amount, $item->comment, $item->options);
+        $db->exec();
+
+        $stmt = $db->prepare("INSERT INTO `InventoryChanges`(`item_id`, `amount_changed`, `amount_available`) VALUES 
+        (?,?,(SELECT amount_available FROM `InventoryChanges` a WHERE a.item_id=? OR a.item_id=0 ORDER BY a.id DESC LIMIT 1)-?)");
+        $stmt->bind_param("iiii", $item->item_id, $item->amount, $item->item_id, $item->amount);
         $db->exec();
     }
 

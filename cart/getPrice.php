@@ -17,6 +17,11 @@ $message = null;
 $restaurant = -1;
 
 $cart = Cart::loadCart($user->id);
+
+$subTotal = $cart->getTotal();
+$tax = $subTotal * $taxPercentage;
+$total = $subTotal + $tax + ($cart->track_inv ? $fee : 0);
+
 if (sizeof($cart->items)) {
     $restaurant = $cart->items[0]->restaurant_id;
 
@@ -44,16 +49,13 @@ if ($row['count'] > 0) {
     $canOrder = false;
     $message = "You already have an active order.";
 }
-
-$subTotal = $cart->getTotal();
-$tax = $subTotal * $taxPercentage;
-$total = $subTotal + $tax;
 echo json_encode(array(
     "subtotal" => $subTotal, 
     "tax" => $tax, 
     "total" => $total, 
     "delivery_fee" => $fee, 
     "can_order" => $canOrder,
+    "need_payment" => $cart->track_inv,
     "msg" => $message
 ));
 ?>
