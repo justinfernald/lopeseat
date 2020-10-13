@@ -3,7 +3,6 @@ require('../api.php');
 
 $db = new db();
 $stmt = $db->prepare("SELECT * FROM Buildings");
-$stmt->bind_param("s",$query);
 
 $buildings = array();
 

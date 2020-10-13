@@ -7,3 +7,9 @@
 <div style="color: rgb(102, 102, 102); font-size: 0.9em; padding: 5px;">
     Security is the top priority for us, so we track everytime your barcode is used by a runner. If you suspect any fraudlent use of your dining dollars, let us know and we will be on the case.
 </div>
+
+<h1 style="
+    font-size: 2em;
+    font-weight: 500;
+    margin-top: 30px;
+">Please update your app if you haven't already</h1>

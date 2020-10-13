@@ -4,7 +4,7 @@ require_once('../api.php');
 $user = $GLOBALS['user'];
     
 $taxPercentage = 0.086;
-$fee = 3.99;
+$fee = 1.99;
 
 if ($user == null) {
     result(false, "Not logged in");

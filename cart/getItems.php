@@ -12,6 +12,7 @@ $cart = Cart::loadCart($user->id);
 
 for ($i = 0; $i < sizeof($cart->items); $i++) {
     $cart->items[$i]->price = $cart->items[$i]->getTotal();
+    $cart->items[$i] = (array) $cart->items[$i];
 }
 
 echo json_encode($cart->items);

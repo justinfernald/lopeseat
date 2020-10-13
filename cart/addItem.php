@@ -43,7 +43,7 @@ if ($cart->count() >= 3) {
 
 $stmt = $db->prepare("SELECT a.amount_available, a.item_id FROM InventoryChanges a 
 INNER JOIN (SELECT item_id, MAX(id) as m_id FROM InventoryChanges GROUP BY item_id) as b on b.m_id = a.id AND a.item_id=?");
-$db->bind_param("i", $itemId);
+$stmt->bind_param("i", $itemId);
 $db->exec();
 $result = $db->get();
 

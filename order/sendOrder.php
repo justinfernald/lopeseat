@@ -2,7 +2,7 @@
 require '../api.php';
 require '../ledger/Ledger.php';
 
-$deliveryfee = 4;
+$deliveryfee = 1.99;
 
 $user = $GLOBALS['user'];
 
@@ -119,7 +119,7 @@ if ($success) {
         $db->exec();
 
         $stmt = $db->prepare("INSERT INTO `InventoryChanges`(`item_id`, `amount_changed`, `amount_available`) VALUES 
-        (?,?,(SELECT amount_available FROM `InventoryChanges` a WHERE a.item_id=? OR a.item_id=0 ORDER BY a.id DESC LIMIT 1)-?)");
+        (?,-?,(SELECT amount_available FROM `InventoryChanges` a WHERE a.item_id=? OR a.item_id=0 ORDER BY a.id DESC LIMIT 1)-?)");
         $stmt->bind_param("iiii", $item->item_id, $item->amount, $item->item_id, $item->amount);
         $db->exec();
     }

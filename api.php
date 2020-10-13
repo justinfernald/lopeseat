@@ -58,10 +58,11 @@ function sendNotification($user, $title, $body, $extraData = null) {
     $stmt->bind_param("i", $user->id);
     $db->exec();
     $result = $db->get();
-    $token = $result->fetch_assoc()['FBToken'];
+    $row = $result->fetch_assoc();
+    $token = $row['FBToken'];
 
-    if ($token != null && $token != "null" && $token != "") {
-        echo $user->id;
+    if ($token != null && strlen($token) > 5) {
+        try {
         $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
         $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
 
@@ -72,6 +73,7 @@ function sendNotification($user, $title, $body, $extraData = null) {
         $message = $message->withNotification($notification);
 
         $result = $messaging->send($message);
+        } catch (Exception $e) {}
     }
     
     $twilio = new Client($GLOBALS['secrets']->twilio->sid, $GLOBALS['secrets']->twilio->token);
