@@ -25,6 +25,11 @@ if ($oldHash !== $hash) {
 }
 
 $newPassword = $_POST["newPassword"];
+
+if (!validPassword($newPassword)) {
+    result(false, "Password must be 8 characters longs and include at least one letter and number");
+}
+
 $newSalt = randomToken();
 $newHash = hash("sha256",$newPassword.$newSalt);
 
