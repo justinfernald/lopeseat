@@ -19,8 +19,8 @@ $db->exec();
 
 $result = $db->get();
 
-if (!(isset($_POST["name"]) && isset($_POST["id"]) && isset($_POST["email"]) && isset($_POST["phone"]) && isset($_POST["password"]) && isset($_POST["profileImage"]))) {
-    result(false, "Missing data " . $_POST["name"] . " " . $_POST["id"] . " " . $_POST["email"] . " " . $_POST["phone"] . " " . $_POST["password"] . " " . $_POST["profileImage"]);
+if (!(isset($_POST["name"]) && isset($_POST["email"]) && isset($_POST["phone"]) && isset($_POST["password"]))) {
+    result(false, "Missing data " . $_POST["name"] . " " . $_POST["email"] . " " . $_POST["phone"]);
     exit();
 }
 
