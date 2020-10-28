@@ -1,6 +1,13 @@
 <?php
 require('api.php');
 
-echo isRestaurantOpen($_GET['id'], (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("PT30M"))) ? "true" : "false";
+$db = new db();
+
+$stmt = $db->prepare("SELECT a.amount_available, a.item_id FROM InventoryChanges a 
+INNER JOIN (SELECT item_id, MAX(id) as m_id FROM InventoryChanges GROUP BY item_id) as b on b.m_id = a.id AND a.item_id=117");
+$db->exec();
+$result = $db->get();
+
+echo $result->fetch_assoc()['amount_available'];
 
 ?>

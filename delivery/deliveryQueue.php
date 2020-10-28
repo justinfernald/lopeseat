@@ -77,7 +77,7 @@ function requestDeliverer($orderId)
 
 function getExpiredOrders()
 {
-    $timeAllowed = 90; // in seconds
+    $timeAllowed = 600; // in seconds
     $db = new db();
     // there is no need to convert to milliseconds since UNIX_TIMESTAMP in sql returns in seconds
     $stmt = $db->prepare("SELECT DelivererRequest.order_id, DelivererRequest.deliverer_id FROM (SELECT order_id, MAX(time_created) AS latest_time FROM DelivererRequest GROUP BY DelivererRequest.order_id) AS LatestDelivererRequest INNER JOIN DelivererRequest ON LatestDelivererRequest.order_id = DelivererRequest.order_id AND LatestDelivererRequest.latest_time = DelivererRequest.time_created WHERE DelivererRequest.status_id='1' AND UNIX_TIMESTAMP(DelivererRequest.time_created) < (UNIX_TIMESTAMP(CURRENT_TIMESTAMP) - ?) ORDER BY DelivererRequest.time_created");
@@ -101,24 +101,11 @@ function getExpiredOrders()
         $title = str_replace("%deliverer%", $rowDeliverer->name, $notification->title);
         $body = str_replace("%deliverer%", $rowDeliverer->name, $notification->body);
         $data = [
-            "title" => $title,
-            "body" => $body,
             "state" => "expired_request",
         ];
 
-        if ($rowDeliverer->FBToken != null) {
-            $messaging = (new Firebase\Factory())->withServiceAccount($GLOBALS['serviceAccountPath'])->createMessaging();
+        sendNotification($deliverer, $title, $body, $data);
 
-            $message = CloudMessage::withTarget('token', $rowDeliverer->FBToken)->withData($data);
-            $notificationResult = $messaging->send($message);
-
-            $twilio = new Client($GLOBAL['secrets']->twilio->sid, $GLOBAL['secrets']->twilio->token);
-            $messagePhone = $twilio->messages->create($rowDeliverer->phone, array(
-                "body" => "$title : $body",
-                "from" => "+17207456737",
-            ));
-
-        }
         array_push($orderIds, $row->order_id);
     }
 

@@ -27,7 +27,7 @@ if (sizeof($cart->items)) {
 
     if (!$cart->isAvailable()) {
         $canOrder = false;
-        $message = $cart->unavailable[0]->name." is out of stock.";
+        $message = $cart->unavailable[0]->amount_available == 0 ? $cart->unavailable[0]->name." is out of stock." : "We only have ".$cart->unavailable[0]->amount_available." of \"".$cart->unavailable[0]->name."\" left in stock.";
     }
 }
 

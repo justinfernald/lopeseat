@@ -20,6 +20,8 @@ $gateway = new Braintree_Gateway([
     'privateKey' => $secrets->braintree->privateKey,
 ]);
 
+$GLOBALS['cartMax'] = 10;
+
 $paypalClientId = $secrets->paypal->clientId;
 $paypalSecret = $secrets->paypal->secret;
 
@@ -61,7 +63,7 @@ function sendNotification($user, $title, $body, $extraData = null) {
     $row = $result->fetch_assoc();
     $token = $row['FBToken'];
 
-    if ($token != null && strlen($token) > 5) {
+    if ($token != null && strlen($token) > 70) {
         try {
         $serviceAccountPath = sprintf("%s/config/service_account.json", __DIR__);
         $messaging = (new Firebase\Factory())->withServiceAccount($serviceAccountPath)->createMessaging();
@@ -475,16 +477,29 @@ class Cart
         return $count;
     }
 
+    public function countItem($item_id) {
+        $count = 0;
+        for ($i = 0; $i < count($this->items); $i++) {
+            if ($this->items[$i]->item_id == $item_id)
+                $count += $this->items[$i]->amount;
+        }
+        return $count;
+    }
+
     public function isAvailable() {
-        $unavailable = [];
+        $unavailable = array();
+        $checkedIds = array();
         if (sizeof($this->items) > 0) {
             //Check if restaurant tracks inventory
             if ($this->track_inv) {
                 // Make sure cart items don't exceed available inventory
                 for ($i = 0; $i < sizeof($this->items); $i++) {
                     $cartItem = $this->items[$i];
-                    if ($cartItem->amount_available < $cartItem->amount) {
-                        array_push($unavailable, $cartItem);
+                    if (!in_array($cartItem->item_id)) {
+                        if ($cartItem->amount_available < $this->countItem($cartItem->item_id)) {
+                            array_push($unavailable, $cartItem);
+                        }
+                        array_push($checkedIds, $cartItem->item_id);
                     }
                 }
             }

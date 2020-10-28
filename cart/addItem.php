@@ -37,8 +37,8 @@ if ($restaurant != -1 && $restaurant != $result->fetch_assoc()['restaurant_id'])
     result(false, "Item is from a different restaurant.");
 }
 
-if ($cart->count() >= 3) {
-    result(false, "You can only order up to 3 items.");
+if ($cart->count() >= $GLOBALS['cartMax']) {
+    result(false, "You can only order up to " . $GLOBALS['cartMax'] . " items.");
 }
 
 $stmt = $db->prepare("SELECT a.amount_available, a.item_id FROM InventoryChanges a 
@@ -47,10 +47,15 @@ $stmt->bind_param("i", $itemId);
 $db->exec();
 $result = $db->get();
 
+// $amountInCart = $cart->countItem($itemId);
+$amountInCart = 0;
+
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
-    if ($row['amount_available'] < $amount) {
-        result(false, "We only have ".$row['amount_available']." in stock currently.");
+    if ($row['amount_available'] == 0) {
+        result(false, "That item is out of stock.");
+    } else if ($row['amount_available'] < $amount + $amountInCart) {
+        result(false, "We only have ".$row['amount_available']." of that item in stock currently.");
     }
 } else {
     result(false, "That item is out of stock.");
@@ -59,6 +64,6 @@ if ($result->num_rows > 0) {
 $stmt = $db->prepare("INSERT INTO `CartItems` (`user_id`, `item_id`, `amount`, `comment`, `options`) VALUES (?,?,?,?,?)");
 $stmt->bind_param("sssss", $user->id, $itemId, $amount, $comment, $options);
 if ($db->exec()) {
-    result(true, array("id" => $GLOBALS['conn']->insert_id));
+    result(true, array("id" => $GLOBALS['conn']->insert_id, "debug" => json_encode($cart->items)));
 }
 ?>
