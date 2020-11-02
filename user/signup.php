@@ -6,14 +6,13 @@ use Twilio\Rest\Client;
 $db = new db();
 
 $name = $_POST["name"];
-$ID_number = $_POST["id"];
 $email = $_POST["email"];
 $phone = formatPhoneNumber($_POST["phone"]);
 $password = $_POST["password"];
 $profile_image = $_POST["profileImage"];
 
-$stmt = $db->prepare("SELECT * FROM Users WHERE student_id=? OR email=? OR phone=?");
-$stmt->bind_param("sss", $ID_number, $email, $phone);
+$stmt = $db->prepare("SELECT * FROM Users WHERE email=? OR phone=?");
+$stmt->bind_param("ss", $email, $phone);
 
 $db->exec();
 
@@ -42,8 +41,8 @@ $salt = randomToken();
 $vCode = randomNum();
 $pwd = hash("sha256",$password.$salt);
 
-$stmt = $db->prepare("INSERT INTO `Users` (`student_id`, `name`, `phone`, `email`, `profile_image`, `salt`, `hash`) VALUES (?,?,?,?,?,?,?)");
-$stmt->bind_param("sssssss", $ID_number, $name, $phone, $email, $profile_image, $salt, $pwd);
+$stmt = $db->prepare("INSERT INTO `Users` (`name`, `phone`, `email`, `profile_image`, `salt`, `hash`) VALUES (?,?,?,?,?,?)");
+$stmt->bind_param("ssssss", $name, $phone, $email, $profile_image, $salt, $pwd);
 $db->exec();
 $user_id = $stmt->insert_id;
 
@@ -51,8 +50,8 @@ $stmt = $db->prepare("INSERT INTO `PhoneConfirmations` (`user_id`, `phone`, `tok
 $stmt->bind_param("iss", $user_id, $phone, $vCode);
 $db->exec();
 
-$stmt = $db->prepare("SELECT id FROM `Users` WHERE `student_id`=?");
-$stmt->bind_param("s", $ID_number);
+$stmt = $db->prepare("SELECT id FROM `Users` WHERE `phone`=?");
+$stmt->bind_param("s", $phone);
 $db->exec();
 $result = $db->get();
 $row = $result->fetch_assoc();
