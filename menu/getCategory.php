@@ -18,18 +18,18 @@ function utf8ize($d)
     return $d;
 }
 
-$rid = $_GET['rid'];
+$rid = $_GET['id'];
 
 $db = new db();
-$stmt = $db->prepare("SELECT MenuItems.* FROM `ItemCategoryLink` RIGHT JOIN `MenuItems` ON ItemCategoryLink.item_id = MenuItems.id WHERE ItemCategoryLink.category_id=3 ORDER BY ItemCategoryLink.priority DESC");
+$stmt = $db->prepare("SELECT id,name,image FROM ItemCategories WHERE restaurant_id=? ORDER BY priority DESC");
 $stmt->bind_param("i", $rid);
 $db->exec();
 $results = $db->get();
 
-$items = [];
+$categories = [];
 
-while ($item = $results->fetch_object()) {
-    array_push($items, utf8ize($item));
+while ($category = $results->fetch_object()) {
+    array_push($categories, utf8ize($category));
 }
 
-echo json_encode($items);
+echo json_encode($categories);
