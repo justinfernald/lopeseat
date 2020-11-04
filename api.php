@@ -20,7 +20,7 @@ $gateway = new Braintree_Gateway([
     'privateKey' => $secrets->braintree->privateKey,
 ]);
 
-$GLOBALS['cartMax'] = 10;
+$GLOBALS['cartMax'] = 15;
 
 $paypalClientId = $secrets->paypal->clientId;
 $paypalSecret = $secrets->paypal->secret;
