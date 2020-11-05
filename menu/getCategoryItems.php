@@ -21,7 +21,7 @@ function utf8ize($d)
 $rid = $_GET['rid'];
 
 $db = new db();
-$stmt = $db->prepare("SELECT MenuItems.* FROM `ItemCategoryLink` RIGHT JOIN `MenuItems` ON ItemCategoryLink.item_id = MenuItems.id WHERE ItemCategoryLink.category_id=3 ORDER BY ItemCategoryLink.priority DESC");
+$stmt = $db->prepare("SELECT MenuItems.* FROM `ItemCategoryLink` RIGHT JOIN `MenuItems` ON ItemCategoryLink.item_id = MenuItems.id WHERE ItemCategoryLink.category_id=? ORDER BY ItemCategoryLink.priority DESC");
 $stmt->bind_param("i", $rid);
 $db->exec();
 $results = $db->get();
