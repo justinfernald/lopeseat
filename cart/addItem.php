@@ -41,24 +41,14 @@ if ($cart->count() >= $GLOBALS['cartMax']) {
     result(false, "You can only order up to " . $GLOBALS['cartMax'] . " items.");
 }
 
-$stmt = $db->prepare("SELECT a.amount_available, a.item_id FROM InventoryChanges a 
-INNER JOIN (SELECT item_id, MAX(id) as m_id FROM InventoryChanges GROUP BY item_id) as b on b.m_id = a.id AND a.item_id=?");
-$stmt->bind_param("i", $itemId);
-$db->exec();
-$result = $db->get();
+$amountAvailable = getAmountAvailable($itemId);
+$amountInCart = $cart->countItem($itemId);
+// $amountInCart = 0;
 
-// $amountInCart = $cart->countItem($itemId);
-$amountInCart = 0;
-
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    if ($row['amount_available'] == 0) {
-        result(false, "That item is out of stock.");
-    } else if ($row['amount_available'] < $amount + $amountInCart) {
-        result(false, "We only have ".$row['amount_available']." of that item in stock currently.");
-    }
-} else {
+if ($amountAvailable == 0) {
     result(false, "That item is out of stock.");
+} else if ($amount + $amountInCart > $amountAvailable) {
+    result(true, "We only have ".$row['amount_available']." of that item in stock currently.");
 }
 
 $stmt = $db->prepare("INSERT INTO `CartItems` (`user_id`, `item_id`, `amount`, `comment`, `options`) VALUES (?,?,?,?,?)");

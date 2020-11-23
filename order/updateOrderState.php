@@ -45,13 +45,23 @@ if ($row['state'] == "completed") {
     result(false, "Cannot update a completed order");
 }
 
-if ($index > 0 && $index < 4) {
+if ($index >= 1 && $index <= 3) {
     $timeColumn = str_replace(" ", "_", strtolower($state));
     $stmt = $db->prepare("UPDATE Orders SET state=?, $timeColumn=CURRENT_TIMESTAMP, deliverer=? WHERE id=?");
     $stmt->bind_param("sii", $state, $deliverer->id, $order);
 } else {
-    if ($index = 0) {
+    if ($index == 0) {
         $deliverer->id = -1;
+    } else if ($index == 4) {
+        $stmt = $db->prepare("SELECT amount FROM PostTips WHERE order_id=?");
+        $stmt->bind_params("i", $order);
+        $db->exec();
+        $results = $db->get();
+
+        if ($results->num_rows > 0) {
+            $row = $results->fetch_assoc();
+            $ledger->transferDeliveryTip($user_id,$deliverer->id,$row['amount']);
+        }
     }
 
     $stmt = $db->prepare("UPDATE Orders SET state=?,deliverer=? WHERE id=?");

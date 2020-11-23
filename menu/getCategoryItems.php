@@ -29,6 +29,7 @@ $results = $db->get();
 $items = [];
 
 while ($item = $results->fetch_object()) {
+    $item->amount_available = getAmountAvailable($item->id);
     array_push($items, utf8ize($item));
 }
 

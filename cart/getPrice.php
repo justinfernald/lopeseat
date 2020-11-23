@@ -31,7 +31,7 @@ if (sizeof($cart->items)) {
     }
 }
 
-if ($restaurant !== -1 && !isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix")))->add(new DateInterval("PT30M")))) {
+if ($restaurant !== -1 && !isRestaurantOpen($restaurant, (new DateTime("now", new DateTimeZone("America/Phoenix"))))) {
     $canOrder = false;
     $message = "This restaurant has finished accepting orders for today.";
 }

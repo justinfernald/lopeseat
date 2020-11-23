@@ -20,7 +20,7 @@ $gateway = new Braintree_Gateway([
     'privateKey' => $secrets->braintree->privateKey,
 ]);
 
-$GLOBALS['cartMax'] = 15;
+$GLOBALS['cartMax'] = 1000;
 
 $paypalClientId = $secrets->paypal->clientId;
 $paypalSecret = $secrets->paypal->secret;
@@ -32,6 +32,7 @@ $GLOBALS['PS'] = $paypalSecret;
 
 $GLOBALS['sql_user'] = $secrets->sql->user;
 $GLOBALS['sql_pass'] = $secrets->sql->pass;
+$GLOBALS['sql_db'] = $secrets->sql->db;
 
 $messages = json_decode(file_get_contents(__DIR__ . "/config/messages.json"));
 $GLOBALS['messages'] = $messages;
@@ -40,6 +41,19 @@ $GLOBALS['serviceAccountPath'] = __DIR__."/config/service_account.json";
 
 if ($_POST['apiToken'] !== null) {
     $GLOBALS['user'] = getUserFromToken($_POST['apiToken']);
+}
+
+function getAmountAvailable($itemId) {
+    $db = new db();
+    $stmt = $db->prepare("SELECT a.amount_available, a.item_id FROM InventoryChanges a 
+    INNER JOIN (SELECT item_id, MAX(id) as m_id FROM InventoryChanges GROUP BY item_id) as b on b.m_id = a.id AND a.item_id=?");
+    $stmt->bind_param("i", $itemId);
+    $db->exec();
+    $result = $db->get();
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc()['amount_available'];
+    }
+    return 0;
 }
 
 function sendNotification($user, $title, $body, $extraData = null) {
@@ -495,7 +509,7 @@ class Cart
                 // Make sure cart items don't exceed available inventory
                 for ($i = 0; $i < sizeof($this->items); $i++) {
                     $cartItem = $this->items[$i];
-                    if (!in_array($cartItem->item_id)) {
+                    if (!in_array($cartItem->item_id, $checkedIds)) {
                         if ($cartItem->amount_available < $this->countItem($cartItem->item_id)) {
                             array_push($unavailable, $cartItem);
                         }
@@ -660,7 +674,7 @@ class db
             $server = "localhost";
             $user = $GLOBALS['sql_user'];
             $pass = $GLOBALS['sql_pass'];
-            $db = "zerentha_lopeseat";
+            $db = $GLOBALS['sql_db'];
 
             $conn = new mysqli($server, $user, $pass, $db);
             $GLOBALS['conn'] = $conn;

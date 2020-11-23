@@ -60,20 +60,28 @@ $paymentType = $_POST['type'];
 $cardType = $_POST['cardType'];
 $useBal = $_POST['useBal'];
 $address = $_POST['address'];
+$tip = $_POST['tip'];
 $total = $cart->getTotal();
 
 $usingBalance = isset($_POST['useBal']);
 
 $chargeAmount = $deliveryfee;
 
+// If order is from convience store, charge payment method for items
 if ($cart->track_inv) {
   $chargeAmount = $chargeAmount + $total;
+}
+
+//Check if a pre-tip is included and add it to total
+if (isset($tip)) {
+  $chargeAmount += floatval($tip);
 }
 
 if ($usingBalance) {
   $ledger = new Ledger();
   $balance = $ledger->getQuickBalance($user->id, intval($useBal));
   
+  // Only transfer the price of the order or entire balance if available is less than price.
   $transferAmount = ($balance > $chargeAmount) ? $chargeAmount : $balance;
   $chargeAmount = $chargeAmount - $transferAmount;
 
@@ -87,9 +95,14 @@ if ($usingBalance) {
 $success = true;
 $result = null;
 $submitted = 1;
+
+// If the balance didn't cover, use payment method also
 if ($chargeAmount != 0) {
   $submit = true;
-  if ($paymentType == "CreditCard" && ($cardType == "Visa" || $cardType == "MasterCard")) {
+
+  // Don't submit for auth so we can do post auth adjustment later
+  // If tip is already included it should submit however
+  if (($paymentType == "Visa" || $paymentType == "MaterCard") && !isset($tip)) {
     $submit = false;
     $submitted = 0;
   }
@@ -106,11 +119,21 @@ if ($chargeAmount != 0) {
 
 if ($success) {
     $transId = $chargeAmount == 0 ? ($useBal == "1" ? "BALANCE" : "EARNINGS") : $result->transaction->id;
+    $transAmount = $chargeAmount - (isset($tip) ? $tip : 0);
 
     $stmt = $db->prepare("INSERT INTO Orders (user_id, address, total, delivery_fee, transaction_id, transaction_amount, submitted, placed) VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)");
-    $stmt->bind_param("isddsdi", $user->id, $address, $total, $deliveryfee, $transId, $chargeAmount, $submitted);
+    $stmt->bind_param("isddsdi", $user->id, $address, $total, $deliveryfee, $transId, $transAmount, $submitted);
     $db->exec();
     $order_id = $GLOBALS['conn']->insert_id;
+
+    if (isset($tip)) {
+      $stmt = $db->prepare("INSERT INTO PostTips (order_id,amount,transaction_id,`time`) VALUES (?,?,?,CURRENT_TIMESTAMP)");
+      $stmt->bind_param("iis", $order_id, $tip, $transId);
+
+      $db->exec();
+    }
+
+    result(true);
 
     for ($i = 0; $i < sizeof($cart->items); $i++) {
         $item = $cart->items[$i];
@@ -129,6 +152,6 @@ if ($success) {
     $db->exec();
     result(true, $result == null ? "Used balance" : $result->transaction->status);
 } else {
-    result($result->success, $result->transaction->status);
+    result($result->success, json_encode($result));
 }
 ?>
